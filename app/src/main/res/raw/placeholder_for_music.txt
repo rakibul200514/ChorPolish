@@ -1,0 +1,7 @@
+Paste your .mp3 files here with these names:
+1. main_menu_music.mp3
+2. lobby_music.mp3
+3. gameplay_music.mp3
+4. result_music.mp3
+
+The app is already programmed to play them automatically!

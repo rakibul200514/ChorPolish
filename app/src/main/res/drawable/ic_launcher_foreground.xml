@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Crown (Raja) -->
+    <path
+        android:fillColor="#FFB400"
+        android:pathData="M28,40 L28,26 L41,34 L54,20 L67,34 L80,26 L80,40 Q80,45 54,45 Q28,45 28,40 Z" />
+
+    <!-- Mask (Chor) -->
+    <path
+        android:fillColor="#1C1B1F"
+        android:pathData="M28,58 Q28,50 54,50 Q80,50 80,58 Q80,78 54,78 Q28,78 28,58 Z" />
+
+    <!-- Mask Eyes -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M35,62 A5,3.5 0 1 0 45,62 A5,3.5 0 1 0 35,62" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M63,62 A5,3.5 0 1 0 73,62 A5,3.5 0 1 0 63,62" />
+
+    <!-- Magnifying Glass (Sipahi) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E6E1E5"
+        android:strokeWidth="3"
+        android:pathData="M69,78 A8,8 0 1 0 85,78 A8,8 0 1 0 69,78" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E6E1E5"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M82,82 L86,86" />
+
+</vector>

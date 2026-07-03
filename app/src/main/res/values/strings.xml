@@ -1,0 +1,92 @@
+<resources>
+    <string name="app_name">Chor Polish</string>
+
+    <!-- Player Setup -->
+    <string name="player_setup_title">Chor Polish</string>
+    <string name="enter_player_names">Enter Player Names</string>
+    <string name="player_label">Player %1$d</string>
+    <string name="start_game">START GAME</string>
+    <string name="names_must_be_unique">Names must be unique and not empty</string>
+    <string name="player_default_name">Player %1$d</string>
+
+    <!-- Role Reveal -->
+    <string name="secret_reveal_title">Secret Reveal</string>
+    <string name="pass_phone_to">Pass phone to</string>
+    <string name="tap_to_reveal">TAP TO REVEAL</string>
+    <string name="you_are">YOU ARE</string>
+    <string name="hiding_in">Hiding in %1$d...</string>
+    <string name="i_have_seen_my_role">I HAVE SEEN MY ROLE</string>
+    <string name="tap_instruction">Tap the card to reveal your role</string>
+
+    <!-- Roles -->
+    <string name="role_raja">King</string>
+    <string name="role_mantri">Minister</string>
+    <string name="role_sipahi">Police</string>
+    <string name="role_chor">Thief</string>
+
+    <!-- Guessing -->
+    <string name="police_choice_title">Police\'s Choice</string>
+    <string name="is_the_role">is the %1$s</string>
+    <string name="guessing_instruction">Choose the THIEF among the suspects</string>
+    <string name="the_suspects">The Suspects</string>
+    <string name="suspect_label">Suspect</string>
+    <string name="confirm_guess">CONFIRM GUESS</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="guess_confirmation_text">Do you think %1$s is the Thief?</string>
+    <string name="yes_positive">YES, POSITIVE</string>
+    <string name="cancel">CANCEL</string>
+
+    <!-- Result -->
+    <string name="guess_correct">GUESS CORRECT!</string>
+    <string name="wrong_guess">WRONG GUESS!</string>
+    <string name="round_scores">Round Scores</string>
+    <string name="finish">FINISH</string>
+    <string name="next_round">NEXT ROUND</string>
+    <string name="success">Success</string>
+    <string name="failed">Failed</string>
+
+    <!-- History -->
+    <string name="global_stats_title">Global Stats</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="recent_rounds">Recent Rounds</string>
+    <string name="no_game_history">No game history yet</string>
+    <string name="rounds_played">%1$d rounds played</string>
+    <string name="pts_label">%1$d pts</string>
+    <string name="round_result_label">Round Result</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="sound_effects">Sound Effects</string>
+    <string name="sound_effects_desc">Button Click, Card Flip, Room Created, Player Joined, Role Reveal Sounds, Countdown Tick, Guess Result, Score Update, Winner Sound, Confetti Sound</string>
+    <string name="background_music">Background Music</string>
+    <string name="background_music_desc">Main Menu Music, Lobby Music, Gameplay Music, Result Screen Music</string>
+    <string name="character_voice">Character Voice</string>
+    <string name="character_voice_desc">"You are the King!", "You are the Minister!", "You are the Police!", "You are the Thief!"</string>
+    <string name="language">Language</string>
+    <string name="language_current">English (United States)</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="dark_theme_desc">Follow system settings</string>
+    <string name="version_label">Version 1.0.0</string>
+
+    <!-- Character Voices -->
+    <string name="voice_king">You are the King!</string>
+    <string name="voice_minister">You are the Minister!</string>
+    <string name="voice_police">You are the Police!</string>
+    <string name="voice_thief">You are the Thief!</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer_setup_title">Multiplayer Setup</string>
+    <string name="your_name_label">Your Name</string>
+    <string name="join_existing_room">Join Existing Room</string>
+    <string name="six_digit_code">6-Digit Code</string>
+    <string name="join_room">JOIN ROOM</string>
+    <string name="create_new_room">CREATE NEW ROOM</string>
+    <string name="or_label">OR</string>
+    <string name="room_code_label">Room Code</string>
+    <string name="waiting_for_players">Waiting for players (%1$d/4)</string>
+    <string name="waiting_for_host">Waiting for host to start...</string>
+    <string name="copy_label">Copy</string>
+    <string name="you_indicator">(You)</string>
+    <string name="reconnecting_label">Reconnecting...</string>
+    <string name="multiplayer_btn">MULTIPLAYER (6-DIGIT CODE)</string>
+</resources>

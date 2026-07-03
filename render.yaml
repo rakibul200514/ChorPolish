@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: chor-polish-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node app.js
+    rootDir: backend
+    envVars:
+      - key: MONGODB_URI
+        sync: false # Set this in Render dashboard (e.g. MongoDB Atlas URI)
+      - key: NODE_ENV
+        value: production

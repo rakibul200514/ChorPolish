@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">चोर पुलिस</string>
+
+    <!-- Player Setup -->
+    <string name="player_setup_title">चोर पुलिस</string>
+    <string name="enter_player_names">खिलाड़ियों के नाम दर्ज करें</string>
+    <string name="player_label">खिलाड़ी %1$d</string>
+    <string name="start_game">खेल शुरू करें</string>
+    <string name="names_must_be_unique">नाम अद्वितीय और खाली नहीं होने चाहिए</string>
+    <string name="player_default_name">खिलाड़ी %1$d</string>
+
+    <!-- Role Reveal -->
+    <string name="secret_reveal_title">गुप्त खुलासा</string>
+    <string name="pass_phone_to">फोन उसे दें</string>
+    <string name="tap_to_reveal">खुलासा करने के लिए टैप करें</string>
+    <string name="you_are">आप हैं</string>
+    <string name="hiding_in">%1$d में छिप रहा है...</string>
+    <string name="i_have_seen_my_role">मैंने अपनी भूमिका देख ली है</string>
+    <string name="tap_instruction">अपनी भूमिका देखने के लिए कार्ड पर टैप करें</string>
+
+    <!-- Roles -->
+    <string name="role_raja">राजा</string>
+    <string name="role_mantri">मंत्री</string>
+    <string name="role_sipahi">सिपाही</string>
+    <string name="role_chor">चोर</string>
+
+    <!-- Guessing -->
+    <string name="police_choice_title">सिपाही की पसंद</string>
+    <string name="is_the_role">%1$s है</string>
+    <string name="guessing_instruction">संदिग्धों में से चोर को चुनें</string>
+    <string name="the_suspects">संदिग्ध</string>
+    <string name="suspect_label">संदिग्ध</string>
+    <string name="confirm_guess">पसंद की पुष्टि करें</string>
+    <string name="are_you_sure">क्या आप सुनिश्चित हैं?</string>
+    <string name="guess_confirmation_text">क्या आपको लगता है कि %1$s चोर है?</string>
+    <string name="yes_positive">हाँ, पक्का</string>
+    <string name="cancel">रद्द करें</string>
+
+    <!-- Result -->
+    <string name="guess_correct">सही अनुमान!</string>
+    <string name="wrong_guess">गलत अनुमान!</string>
+    <string name="round_scores">राउंड स्कोर</string>
+    <string name="finish">समाप्त</string>
+    <string name="next_round">अगला राउंड</string>
+    <string name="success">सफल</string>
+    <string name="failed">असफल</string>
+
+    <!-- History -->
+    <string name="global_stats_title">वैश्विक आंकड़े</string>
+    <string name="leaderboard">लीडरबोर्ड</string>
+    <string name="recent_rounds">हाल के राउंड</string>
+    <string name="no_game_history">अभी तक कोई खेल इतिहास नहीं है</string>
+    <string name="rounds_played">%1$d राउंड खेले गए</string>
+    <string name="pts_label">%1$d अंक</string>
+    <string name="round_result_label">राउंड परिणाम</string>
+
+    <!-- Settings -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="sound_effects">ध्वनि प्रभाव</string>
+    <string name="sound_effects_desc">बटन क्लिक, कार्ड फ्लिप, आदि</string>
+    <string name="background_music">पार्श्व संगीत</string>
+    <string name="background_music_desc">मुख्य मेनू, गेमप्ले संगीत</string>
+    <string name="character_voice">चरित्र की आवाज</string>
+    <string name="character_voice_desc">"आप राजा हैं!", आदि</string>
+    <string name="language">भाषा</string>
+    <string name="language_current">हिन्दी</string>
+    <string name="dark_theme">डार्क थीम</string>
+    <string name="dark_theme_desc">सिस्टम सेटिंग्स का पालन करें</string>
+    <string name="version_label">संस्करण 1.0.0</string>
+
+    <!-- Multiplayer -->
+    <string name="multiplayer_setup_title">मल्टीप्लेयर सेटअप</string>
+    <string name="your_name_label">आपका नाम</string>
+    <string name="join_existing_room">मौजूदा कमरे में शामिल हों</string>
+    <string name="six_digit_code">6-अंकों का कोड</string>
+    <string name="join_room">कमरे में शामिल हों</string>
+    <string name="create_new_room">नया कमरा बनाएं</string>
+    <string name="or_label">या</string>
+    <string name="room_code_label">कमरा कोड</string>
+    <string name="waiting_for_players">खिलाड़ियों का इंतज़ार (%1$d/4)</string>
+    <string name="waiting_for_host">होस्ट के शुरू करने का इंतज़ार...</string>
+    <string name="multiplayer_btn">मल्टीप्लेयर (6-अंकों का कोड)</string>
+</resources>
