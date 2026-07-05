@@ -1,8 +1,8 @@
-package com.example.chorpolish
+package com.rakibul.chorpolish
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chorpolish.data.local.SessionManager
+import com.rakibul.chorpolish.data.local.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

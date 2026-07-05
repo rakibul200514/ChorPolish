@@ -3,9 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
-        android:name=".ChorPolishApp"
+        android:name="com.rakibul.chorpolish.ChorPolishApp"
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -16,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChorPolish">
         <activity
-            android:name=".MainActivity"
+            android:name="com.rakibul.chorpolish.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ChorPolish">
@@ -29,7 +31,7 @@
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-3598041101429640~1856813624"/>
     </application>
 
 </manifest>

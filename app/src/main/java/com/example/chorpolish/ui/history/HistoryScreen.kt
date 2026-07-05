@@ -1,5 +1,6 @@
-package com.example.chorpolish.ui.history
+package com.rakibul.chorpolish.ui.history
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.chorpolish.R
+import com.rakibul.chorpolish.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,19 +30,24 @@ fun HistoryScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.global_stats_title)) },
+                title = { Text(stringResource(R.string.global_stats_title), color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 actions = {
                     IconButton(onClick = onClear) {
-                        Icon(Icons.Rounded.Delete, contentDescription = "Clear History")
+                        Icon(Icons.Rounded.Delete, contentDescription = "Clear History", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White
+                )
             )
-        }
+        },
+        containerColor = Color.Transparent
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -98,12 +104,13 @@ fun LeaderboardItem(stat: PlayerStat, rank: Int) {
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = when(rank) {
-                1 -> Color(0xFFFFD700).copy(alpha = 0.1f) // Gold
-                2 -> Color(0xFFC0C0C0).copy(alpha = 0.1f) // Silver
-                3 -> Color(0xFFCD7F32).copy(alpha = 0.1f) // Bronze
-                else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                1 -> Color(0xFFFFD700).copy(alpha = 0.2f) // Gold
+                2 -> Color(0xFFC0C0C0).copy(alpha = 0.2f) // Silver
+                3 -> Color(0xFFCD7F32).copy(alpha = 0.2f) // Bronze
+                else -> Color.White.copy(alpha = 0.12f)
             }
-        )
+        ),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -128,35 +135,35 @@ fun LeaderboardItem(stat: PlayerStat, rank: Int) {
                         rank.toString(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black.copy(alpha = 0.5f)
+                        color = Color.Black
                     )
                 } else {
                     Text(
                         "#$rank",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color.White
                     )
                 }
             }
 
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(stat.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(stringResource(R.string.rounds_played, stat.gamesPlayed), style = MaterialTheme.typography.bodySmall)
+                Text(stat.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(stringResource(R.string.rounds_played, stat.gamesPlayed), style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.7f))
             }
             Text(
                 stat.totalScore.toString(),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
+                color = Color.White
             )
         }
     }
 }
 
 @Composable
-fun HistoryItem(round: com.example.chorpolish.data.local.entity.GameRound) {
+fun HistoryItem(round: com.rakibul.chorpolish.data.local.entity.GameRound) {
     val isLetterSet = round.chorPlayerName == "LETTER_SET"
     
     OutlinedCard(

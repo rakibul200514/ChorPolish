@@ -1,8 +1,8 @@
-package com.example.chorpolish.ui.settings
+package com.rakibul.chorpolish.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chorpolish.data.local.SessionManager
+import com.rakibul.chorpolish.data.local.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val sessionManager: SessionManager,
-    val adManager: com.example.chorpolish.utils.AdManager
+    val adManager: com.rakibul.chorpolish.utils.AdManager
 ) : ViewModel() {
 
     val soundEffectsEnabled: StateFlow<Boolean> = sessionManager.soundEffectsEnabled

@@ -1,11 +1,11 @@
-package com.example.chorpolish.utils
+package com.rakibul.chorpolish.utils
 
-import com.example.chorpolish.BuildConfig
+import com.rakibul.chorpolish.BuildConfig
 
 object NetworkConfig {
     // Replace with your actual production URL
-    private const val PRODUCTION_URL = "https://chor-polish-backend.onrender.com"
-    private const val DEVELOPMENT_URL = "http://10.32.112.144:3000" // Standard Android Emulator Localhost
+    private const val PRODUCTION_URL = "https://chorpolish.onrender.com"
+    private const val DEVELOPMENT_URL = "https://chorpolish.onrender.com" // Set to production for testing
 
     val BASE_URL: String
         get() = if (BuildConfig.DEBUG) "$DEVELOPMENT_URL/api/" else "$PRODUCTION_URL/api/"

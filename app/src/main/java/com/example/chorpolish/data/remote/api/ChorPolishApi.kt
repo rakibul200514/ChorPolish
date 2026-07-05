@@ -1,6 +1,6 @@
-package com.example.chorpolish.data.remote.api
+package com.rakibul.chorpolish.data.remote.api
 
-import com.example.chorpolish.data.remote.model.*
+import com.rakibul.chorpolish.data.remote.model.*
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

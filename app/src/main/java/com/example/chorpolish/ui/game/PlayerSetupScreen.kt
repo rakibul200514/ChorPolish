@@ -1,8 +1,10 @@
-package com.example.chorpolish.ui.game
+package com.rakibul.chorpolish.ui.game
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Person
@@ -11,13 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chorpolish.R
+import com.rakibul.chorpolish.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +32,7 @@ fun PlayerSetupScreen(
 ) {
     val scrollState = rememberScrollState()
     
-    val isInputValid = uiState.players.all { it.name.isNotBlank() } && 
-            uiState.players.map { it.name.trim() }.distinct().size == 4
+    val isInputValid = uiState.players.filter { !it.isRobot }.all { it.name.isNotBlank() }
 
     Scaffold(
         topBar = {
@@ -50,15 +52,19 @@ fun PlayerSetupScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White
                 )
             )
         },
+        containerColor = Color.Transparent,
         bottomBar = {
             Surface(
                 tonalElevation = 3.dp,
-                shadowElevation = 8.dp
+                shadowElevation = 8.dp,
+                color = Color.White.copy(alpha = 0.08f), // Darker glass effect
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Button(
@@ -100,17 +106,17 @@ fun PlayerSetupScreen(
                     )
 
                     Text(
-                        stringResource(R.string.enter_player_names),
+                        "Enter Your Name",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = Color.White,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    uiState.players.forEachIndexed { index, player ->
+                    uiState.players.filter { !it.isRobot }.forEachIndexed { index, player ->
                         OutlinedTextField(
                             value = player.name,
                             onValueChange = { onUpdateName(index, it) },
-                            label = { Text(stringResource(R.string.player_label, index + 1)) },
+                            label = { Text("Your Name", color = Color.White.copy(alpha = 0.7f)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 12.dp),
@@ -118,13 +124,27 @@ fun PlayerSetupScreen(
                                 Icon(
                                     imageVector = Icons.Rounded.Person,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = Color.White
                                 ) 
                             },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
+                                cursorColor = Color.White
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium
                         )
                     }
+                    
+                    Text(
+                        "You will play against 3 Robot players",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
 
                     if (!isInputValid && uiState.players.any { it.name.isNotBlank() }) {
                         Text(

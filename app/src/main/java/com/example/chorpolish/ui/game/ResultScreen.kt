@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.game
+package com.rakibul.chorpolish.ui.game
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -34,10 +34,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import android.app.Activity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
-import com.example.chorpolish.R
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.data.model.Player
-import com.example.chorpolish.ui.menu.DecorativeShapes
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.Player
+import com.rakibul.chorpolish.ui.components.BannerAd
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -51,7 +51,7 @@ fun ResultScreen(
     gameViewModel: GameViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val adManager = remember { com.example.chorpolish.utils.AdManager() }
+    val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
     val isLastRound = uiState.currentRound >= uiState.maxRounds
     
     if (uiState.gameMode == GameMode.LETTER_SET) {
@@ -109,39 +109,25 @@ fun ResultScreen(
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                        )
-                    )
-                )
-        ) {
-            DecorativeShapes()
-
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .drawBehind {
-                        if (isCorrect && !isLastRound) {
-                            particles.forEach { p ->
-                                drawCircle(
-                                    color = p.color,
-                                    radius = p.size,
-                                    center = Offset(p.x * size.width, p.y * size.height)
-                                )
-                            }
+                .drawBehind {
+                    if (isCorrect && !isLastRound) {
+                        particles.forEach { p ->
+                            drawCircle(
+                                color = p.color,
+                                radius = p.size,
+                                center = Offset(p.x * size.width, p.y * size.height)
+                            )
                         }
                     }
-                    .verticalScroll(scrollState)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+                }
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             // Result Banner
             if (isLastRound) {
                 FinalCelebration(uiState.players.sortedByDescending { it.sessionScore })
@@ -225,7 +211,6 @@ fun ResultScreen(
             Spacer(Modifier.height(120.dp))
         }
     }
-}
 }
 
 @Composable
@@ -367,29 +352,15 @@ fun LetterSetResultContent(
 ) {
     val scrollState = rememberScrollState()
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                    )
-                )
-            )
+            .verticalScroll(scrollState)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        DecorativeShapes()
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(48.dp))
             
             Surface(
                 modifier = Modifier.size(120.dp),
@@ -485,8 +456,14 @@ fun LetterSetResultContent(
                     ) {
                         Text("FINISH", fontWeight = FontWeight.Bold)
                     }
+                    val context = LocalContext.current
+                    val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
                     Button(
-                        onClick = onNextRound,
+                        onClick = {
+                            adManager.showInterstitialAd(context as Activity) {
+                                onNextRound()
+                            }
+                        },
                         modifier = Modifier.weight(1f).height(64.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
@@ -499,7 +476,6 @@ fun LetterSetResultContent(
             Spacer(Modifier.height(60.dp))
         }
     }
-}
 
 @Composable
 private fun getRoleNameResult(role: GameRole): String {
@@ -514,6 +490,7 @@ private fun getRoleNameResult(role: GameRole): String {
 @Composable
 fun FinalCelebration(players: List<Player>) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        BannerAd(modifier = Modifier.padding(bottom = 16.dp))
         Icon(
             Icons.Rounded.EmojiEvents,
             contentDescription = null,

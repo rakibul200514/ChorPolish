@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.theme
+package com.rakibul.chorpolish.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,9 +1,10 @@
-package com.example.chorpolish.data.model
+package com.rakibul.chorpolish.data.model
 
 data class Player(
     val id: Int,
     val name: String,
     var currentRole: GameRole? = null,
     var sessionScore: Int = 0,
-    var hasSeenRole: Boolean = false
+    var hasSeenRole: Boolean = false,
+    val isRobot: Boolean = false
 )

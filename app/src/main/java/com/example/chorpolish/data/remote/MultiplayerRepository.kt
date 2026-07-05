@@ -1,8 +1,8 @@
-package com.example.chorpolish.data.remote
+package com.rakibul.chorpolish.data.remote
 
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.data.remote.api.ChorPolishApi
-import com.example.chorpolish.data.remote.model.*
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.remote.api.ChorPolishApi
+import com.rakibul.chorpolish.data.remote.model.*
 import com.squareup.moshi.Moshi
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -66,10 +66,11 @@ class MultiplayerRepository @Inject constructor(
         socket.emit("joinRoom", data)
     }
 
-    fun triggerStart(roomCode: String, gameMode: String = "CHOR_POLISH") {
+    fun triggerStart(roomCode: String, gameMode: String = "CHOR_POLISH", maxRounds: Int = 8) {
         val data = JSONObject().apply {
             put("roomCode", roomCode)
             put("gameMode", gameMode)
+            put("maxRounds", maxRounds)
         }
         socket.emit("startGame", data)
     }

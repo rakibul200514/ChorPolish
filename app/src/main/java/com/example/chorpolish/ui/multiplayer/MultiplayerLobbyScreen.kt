@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.multiplayer
+package com.rakibul.chorpolish.ui.multiplayer
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -45,12 +45,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.chorpolish.R
+import com.rakibul.chorpolish.R
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import com.example.chorpolish.ui.menu.DecorativeShapes
-import com.example.chorpolish.ui.menu.VideoBanner
+import com.rakibul.chorpolish.ui.menu.DecorativeShapes
+import com.rakibul.chorpolish.ui.menu.VideoBanner
+import com.rakibul.chorpolish.utils.QrUtils
+import androidx.compose.ui.graphics.asImageBitmap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,12 +61,16 @@ fun MultiplayerLobbyScreen(
     players: List<String>,
     myName: String,
     isHost: Boolean,
-    onStartGame: (String) -> Unit,
+    initialGameMode: String,
+    onStartGame: (String, Int) -> Unit,
     onLeaveRoom: () -> Unit,
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var selectedMode by remember { mutableStateOf("CHOR_POLISH") }
+    var selectedMode by remember(initialGameMode) { mutableStateOf(initialGameMode) }
+    var selectedRounds by remember { mutableIntStateOf(8) }
+    var showCustomRoundsDialog by remember { mutableStateOf(false) }
+    var customRoundsInput by remember { mutableStateOf("10") }
     
     Scaffold(
         topBar = {
@@ -83,36 +89,22 @@ fun MultiplayerLobbyScreen(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = Color.White
                 )
             )
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                        )
-                    )
-                )
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DecorativeShapes()
-
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Video Banner added to Lobby
-                VideoBanner(
+            // Video Banner added to Lobby
+            VideoBanner(
                     videoFileName = "lobby_banner",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,6 +192,37 @@ fun MultiplayerLobbyScreen(
                             color = MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                         )
+
+                        Spacer(Modifier.height(24.dp))
+
+                        // QR Code Section
+                        if (roomCode != "000000" && roomCode.isNotBlank()) {
+                            val qrBitmap = remember(roomCode) { QrUtils.generateQrCode(roomCode, 300) }
+                            qrBitmap?.let {
+                                Card(
+                                    modifier = Modifier.size(160.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Box(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                                        Image(
+                                            bitmap = it.asImageBitmap(),
+                                            contentDescription = "Room QR Code",
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    "SCAN TO JOIN",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 2.sp
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -252,13 +275,37 @@ fun MultiplayerLobbyScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        "CHOOSE MATCH LENGTH",
+                        modifier = Modifier.align(Alignment.Start).padding(start = 8.dp, bottom = 12.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.sp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        RoundOptionChip("5 RDS", 5, selectedRounds == 5) { selectedRounds = 5 }
+                        RoundOptionChip("8 RDS", 8, selectedRounds == 8) { selectedRounds = 8 }
+                        RoundOptionChip("16 RDS", 16, selectedRounds == 16) { selectedRounds = 16 }
+                        RoundOptionChip(
+                            if (selectedRounds != 5 && selectedRounds != 8 && selectedRounds != 16) "$selectedRounds RDS" else "CUSTOM",
+                            if (selectedRounds != 5 && selectedRounds != 8 && selectedRounds != 16) selectedRounds else -1,
+                            selectedRounds != 5 && selectedRounds != 8 && selectedRounds != 16
+                        ) { showCustomRoundsDialog = true }
+                    }
                 }
 
                 Spacer(Modifier.height(32.dp))
 
                 if (isHost) {
                     Button(
-                        onClick = { onStartGame(selectedMode) },
+                        onClick = { onStartGame(selectedMode, selectedRounds) },
                         enabled = players.size == 4,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -299,7 +346,61 @@ fun MultiplayerLobbyScreen(
                 }
                 
                 Spacer(Modifier.height(60.dp))
+        }
+    }
+
+    if (showCustomRoundsDialog) {
+        AlertDialog(
+            onDismissRequest = { showCustomRoundsDialog = false },
+            title = { Text("Custom Match Rounds") },
+            text = {
+                OutlinedTextField(
+                    value = customRoundsInput,
+                    onValueChange = { if (it.length <= 2) customRoundsInput = it.filter { c -> c.isDigit() } },
+                    label = { Text("Enter number of rounds") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val r = customRoundsInput.toIntOrNull() ?: 10
+                    selectedRounds = r.coerceIn(2, 50)
+                    showCustomRoundsDialog = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCustomRoundsDialog = false }) {
+                    Text("CANCEL")
+                }
             }
+        )
+    }
+}
+
+@Composable
+fun RoundOptionChip(
+    text: String,
+    value: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.height(40.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
+            Text(
+                text,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

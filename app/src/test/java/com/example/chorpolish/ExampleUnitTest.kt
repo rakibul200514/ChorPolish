@@ -1,4 +1,4 @@
-package com.example.chorpolish
+package com.rakibul.chorpolish
 
 import org.junit.Test
 

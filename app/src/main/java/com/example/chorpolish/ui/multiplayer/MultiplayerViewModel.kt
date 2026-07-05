@@ -1,17 +1,18 @@
-package com.example.chorpolish.ui.multiplayer
+package com.rakibul.chorpolish.ui.multiplayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chorpolish.data.local.SessionManager
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.data.local.entity.GameRound
-import com.example.chorpolish.data.repository.GameRepository
-import com.example.chorpolish.data.remote.MultiplayerEvent
-import com.example.chorpolish.data.remote.MultiplayerRepository
-import com.example.chorpolish.data.remote.model.RoomResponse
-import com.example.chorpolish.ui.navigation.NavDestination
-import com.example.chorpolish.utils.SoundEffect
-import com.example.chorpolish.utils.SoundManager
+import com.rakibul.chorpolish.data.local.SessionManager
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.local.entity.GameRound
+import com.rakibul.chorpolish.data.repository.GameRepository
+import com.rakibul.chorpolish.data.remote.MultiplayerEvent
+import com.rakibul.chorpolish.data.remote.MultiplayerRepository
+import com.rakibul.chorpolish.data.remote.model.RemotePlayer
+import com.rakibul.chorpolish.data.remote.model.RoomResponse
+import com.rakibul.chorpolish.ui.navigation.NavDestination
+import com.rakibul.chorpolish.utils.SoundEffect
+import com.rakibul.chorpolish.utils.SoundManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -20,7 +21,8 @@ import javax.inject.Inject
 data class MultiplayerUiState(
     val roomCode: String? = null,
     val players: List<String> = emptyList(),
-    val playerIds: List<String> = emptyList(), // Added playerIds
+    val remotePlayers: List<RemotePlayer> = emptyList(), // Added full player info
+    val playerIds: List<String> = emptyList(),
     val isHost: Boolean = false,
     val myName: String = "",
     val myPlayerId: String = "",
@@ -32,6 +34,7 @@ data class MultiplayerUiState(
     val rajaPlayer: String? = null,
     val chorPlayer: String? = null,
     val sipahiPlayer: String? = null,
+    val sipahiPlayerId: String? = null,
     val guessOptions: List<String> = emptyList(),
     val isGuessCorrect: Boolean? = null,
     val roundScores: List<Pair<String, Int>> = emptyList(),
@@ -40,6 +43,7 @@ data class MultiplayerUiState(
     val currentRound: Int = 1,
     val error: String? = null,
     val activeReactions: List<EmojiReaction> = emptyList(),
+    val scannedRoomCode: String? = null, // Added
     val playerCards: Map<String, List<String>> = emptyMap(),
     val winner: String? = null,
     val currentPlayerTurn: Int = 0,
@@ -83,6 +87,8 @@ class MultiplayerViewModel @Inject constructor(
             }
         }
 
+        // Removed auto-join from init to prevent taking users to old rooms on app restart
+        /*
         viewModelScope.launch {
             val savedRoomCode = sessionManager.roomCode.first()
             val savedName = sessionManager.playerName.first()
@@ -90,6 +96,7 @@ class MultiplayerViewModel @Inject constructor(
                 joinRoom(savedName, savedRoomCode)
             }
         }
+        */
         
         viewModelScope.launch {
             sessionManager.premiumEmojisUnlocked.collect { unlocked ->
@@ -130,12 +137,15 @@ class MultiplayerViewModel @Inject constructor(
     }
 
     private fun updateStateFromRoom(room: RoomResponse) {
-        val currentMyPlayerId = _uiState.value.myPlayerId.ifEmpty { 
-            // Fallback: try to find by name if ID is somehow lost in state
-            room.players?.find { it.name == _uiState.value.myName }?.playerId ?: ""
-        }
+        val currentId = _uiState.value.myPlayerId
+        val currentName = _uiState.value.myName
         
-        val myRemotePlayer = room.players?.find { it.playerId == currentMyPlayerId }
+        // Find my player in the room list
+        val myRemotePlayer = room.players?.find { 
+            (it.playerId == currentId && currentId.isNotEmpty()) || 
+            (it.name == currentName && currentName.isNotEmpty()) 
+        }
+
         val myRole = when(myRemotePlayer?.role?.uppercase()) {
             "KING", "RAJA" -> GameRole.RAJA
             "MINISTER", "MANTRI" -> GameRole.MANTRI
@@ -151,16 +161,18 @@ class MultiplayerViewModel @Inject constructor(
             state.copy(
                 roomCode = room.roomCode ?: state.roomCode,
                 players = room.players?.mapNotNull { it.name } ?: state.players,
+                remotePlayers = room.players ?: emptyList(), // Store full list
                 playerIds = room.players?.mapNotNull { it.playerId } ?: state.playerIds,
                 isHost = room.host == state.myName,
                 phase = room.phase ?: "LOBBY",
                 gameMode = room.gameMode ?: "CHOR_POLISH",
-                myRole = myRole ?: state.myRole, // Keep existing role if not in update
-                myPlayerId = if (state.myPlayerId.isEmpty()) currentMyPlayerId else state.myPlayerId,
+                myRole = myRole, // Correctly update role (can be null in Letter Set)
+                myPlayerId = if (state.myPlayerId.isEmpty()) (myRemotePlayer?.playerId ?: "") else state.myPlayerId,
                 mantriPlayer = room.mantriPlayer,
                 rajaPlayer = room.rajaPlayer,
                 chorPlayer = room.chorPlayer,
                 sipahiPlayer = room.sipahiPlayer,
+                sipahiPlayerId = room.sipahiPlayerId,
                 guessOptions = room.guessOptions ?: emptyList(),
                 isGuessCorrect = room.isGuessCorrect,
                 roundScores = room.players?.mapNotNull { it.name?.to(it.score ?: 0) } ?: emptyList(),
@@ -252,10 +264,10 @@ class MultiplayerViewModel @Inject constructor(
         }
     }
 
-    fun triggerStart(gameMode: String = "CHOR_POLISH") {
+    fun triggerStart(gameMode: String = "CHOR_POLISH", maxRounds: Int = 8) {
         soundManager.playSoundEffect(SoundEffect.BUTTON_CLICK)
         _uiState.value.roomCode?.let {
-            repository.triggerStart(it, gameMode)
+            repository.triggerStart(it, gameMode, maxRounds)
         }
     }
 
@@ -337,6 +349,20 @@ class MultiplayerViewModel @Inject constructor(
                 )
                 gameRepository.insertRound(round)
             }
+        }
+    }
+
+    fun setScannedRoomCode(code: String?) {
+        _uiState.update { it.copy(scannedRoomCode = code) }
+    }
+
+    fun leaveRoom() {
+        viewModelScope.launch {
+            sessionManager.saveRoomCode(null)
+            _uiState.update { it.copy(roomCode = null, players = emptyList(), myRole = null, phase = "LOBBY") }
+            repository.disconnect()
+            // Optional: reconnect immediately if you want to be ready for the next room
+            repository.connect()
         }
     }
 

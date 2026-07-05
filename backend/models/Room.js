@@ -22,6 +22,7 @@ const roomSchema = new mongoose.Schema({
     rajaPlayer: String,
     chorPlayer: String,
     sipahiPlayer: String,
+    sipahiPlayerId: String, // Added
     guessOptions: [String],
     selectedChorGuess: String,
     isGuessCorrect: Boolean,

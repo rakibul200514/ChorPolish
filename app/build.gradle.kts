@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.chorpolish"
+    namespace = "com.rakibul.chorpolish"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.chorpolish"
+        applicationId = "com.rakibul.chorpolish"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -102,4 +102,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:25.4.0")
     "ksp"(libs.hilt.compiler)
     implementation(libs.google.errorprone.annotations)
+    implementation(libs.zxing.core)
+    implementation(libs.barcode.scanning)
 }

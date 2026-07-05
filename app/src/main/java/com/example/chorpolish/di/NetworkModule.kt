@@ -1,7 +1,7 @@
-package com.example.chorpolish.di
+package com.rakibul.chorpolish.di
 
-import com.example.chorpolish.data.remote.api.ChorPolishApi
-import com.example.chorpolish.utils.NetworkConfig
+import com.rakibul.chorpolish.data.remote.api.ChorPolishApi
+import com.rakibul.chorpolish.utils.NetworkConfig
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module

@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.menu
+package com.rakibul.chorpolish.ui.menu
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -33,8 +33,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.chorpolish.R
-import com.example.chorpolish.ui.components.BannerAd
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.ui.theme.GameSecondary
+import com.rakibul.chorpolish.ui.components.BannerAd
 
 @Composable
 fun MainMenuScreen(
@@ -60,129 +61,114 @@ fun MainMenuScreen(
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(top = 20.dp, bottom = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DecorativeShapes()
-
-            Column(
+            // Video Banner
+            VideoBanner(
+                videoFileName = "menu_banner",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 20.dp, bottom = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Video Banner
-                VideoBanner(
-                    videoFileName = "menu_banner",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1604f / 720f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .shadow(12.dp, RoundedCornerShape(24.dp))
-                        .border(
-                            BorderStroke(
-                                2.dp,
-                                Brush.linearGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        MaterialTheme.colorScheme.secondary
-                                    )
+                    .fillMaxWidth()
+                    .aspectRatio(1604f / 720f)
+                    .clip(RoundedCornerShape(24.dp))
+                    .shadow(12.dp, RoundedCornerShape(24.dp))
+                    .border(
+                        BorderStroke(
+                            2.dp,
+                            Brush.linearGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.secondary
                                 )
-                            ),
-                            RoundedCornerShape(24.dp)
-                        )
-                )
-
-                Spacer(Modifier.height(32.dp))
-
-                // Logo and Title
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Chor Polish Logo",
-                        modifier = Modifier
-                            .size(140.dp)
-                            .scale(logoScale)
-                    )
-                    Text(
-                        stringResource(R.string.app_name).uppercase(),
-                        style = MaterialTheme.typography.displaySmall.copy(
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 4.sp
+                            )
                         ),
-                        color = MaterialTheme.colorScheme.primary
+                        RoundedCornerShape(24.dp)
                     )
-                    Text(
-                        "THE ULTIMATE MYSTERY GAME",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            )
 
-                Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(32.dp))
 
-                // Menu Buttons
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    MenuButton(
-                        text = "LOCAL GAME",
-                        icon = Icons.Rounded.Group,
-                        color = MaterialTheme.colorScheme.primary,
-                        onClick = onLocalGame
-                    )
-
-                    MenuButton(
-                        text = "MULTIPLAYER",
-                        icon = Icons.Rounded.Public,
-                        color = MaterialTheme.colorScheme.secondary,
-                        onClick = onMultiplayer
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        SmallMenuButton(
-                            text = "History",
-                            icon = Icons.Rounded.History,
-                            modifier = Modifier.weight(1f),
-                            onClick = onHistory
-                        )
-                        SmallMenuButton(
-                            text = "Settings",
-                            icon = Icons.Rounded.Settings,
-                            modifier = Modifier.weight(1f),
-                            onClick = onSettings
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Bottom Version Info
+            // Logo and Title
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Chor Polish Logo",
+                    modifier = Modifier
+                        .size(140.dp)
+                        .scale(logoScale)
+                )
                 Text(
-                    stringResource(R.string.version_label),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    stringResource(R.string.app_name).uppercase(),
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 4.sp
+                    ),
+                    color = Color.White
+                )
+                Text(
+                    "THE ULTIMATE MYSTERY GAME",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = GameSecondary,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
+
+            Spacer(Modifier.weight(1f))
+
+            // Menu Buttons
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                MenuButton(
+                    text = "LOCAL GAME",
+                    icon = Icons.Rounded.Group,
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = onLocalGame
+                )
+
+                MenuButton(
+                    text = "MULTIPLAYER",
+                    icon = Icons.Rounded.Public,
+                    color = MaterialTheme.colorScheme.secondary,
+                    onClick = onMultiplayer
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SmallMenuButton(
+                        text = "History",
+                        icon = Icons.Rounded.History,
+                        modifier = Modifier.weight(1f),
+                        onClick = onHistory
+                    )
+                    SmallMenuButton(
+                        text = "Settings",
+                        icon = Icons.Rounded.Settings,
+                        modifier = Modifier.weight(1f),
+                        onClick = onSettings
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Bottom Version Info
+            Text(
+                stringResource(R.string.version_label),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
     }
 }
@@ -246,11 +232,12 @@ fun MenuButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(28.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(28.dp), tint = Color.White)
             Spacer(Modifier.width(12.dp))
             Text(
                 text,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = Color.White
             )
         }
     }
@@ -267,11 +254,14 @@ fun SmallMenuButton(
         onClick = onClick,
         modifier = modifier.height(56.dp),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color.White
+        )
     ) {
-        Icon(icon, contentDescription = null)
+        Icon(icon, contentDescription = null, tint = Color.White)
         Spacer(Modifier.width(8.dp))
-        Text(text)
+        Text(text, color = Color.White)
     }
 }
 

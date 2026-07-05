@@ -1,9 +1,9 @@
-package com.example.chorpolish.di
+package com.rakibul.chorpolish.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.chorpolish.data.local.AppDatabase
-import com.example.chorpolish.data.local.dao.GameRoundDao
+import com.rakibul.chorpolish.data.local.AppDatabase
+import com.rakibul.chorpolish.data.local.dao.GameRoundDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

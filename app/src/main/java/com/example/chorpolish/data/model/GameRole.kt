@@ -1,6 +1,6 @@
-package com.example.chorpolish.data.model
+package com.rakibul.chorpolish.data.model
 
-import com.example.chorpolish.R
+import com.rakibul.chorpolish.R
 
 enum class GameRole(val roleName: String, val baseScore: Int, val imageRes: Int) {
     RAJA("King", 1000, R.drawable.role_raja),

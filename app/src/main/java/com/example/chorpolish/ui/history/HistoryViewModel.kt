@@ -1,9 +1,9 @@
-package com.example.chorpolish.ui.history
+package com.rakibul.chorpolish.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chorpolish.data.local.entity.GameRound
-import com.example.chorpolish.data.repository.GameRepository
+import com.rakibul.chorpolish.data.local.entity.GameRound
+import com.rakibul.chorpolish.data.repository.GameRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

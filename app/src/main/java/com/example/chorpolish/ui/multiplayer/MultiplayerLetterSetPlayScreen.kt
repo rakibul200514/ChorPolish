@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.multiplayer
+package com.rakibul.chorpolish.ui.multiplayer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,10 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chorpolish.ui.game.LetterCard
-import com.example.chorpolish.ui.menu.DecorativeShapes
+import androidx.compose.ui.graphics.Color
+import com.rakibul.chorpolish.ui.game.LetterCard
+import com.rakibul.chorpolish.ui.menu.DecorativeShapes
 
 @Composable
 fun MultiplayerLetterSetPlayScreen(
@@ -25,7 +27,11 @@ fun MultiplayerLetterSetPlayScreen(
     state: MultiplayerUiState
 ) {
     val myCards = state.playerCards[state.myPlayerId] ?: emptyList()
+    val activePlayerName = state.players.getOrNull(state.currentPlayerTurn) ?: "..."
+    val activePlayer = state.remotePlayers.find { it.name == activePlayerName }
     val isMyTurn = state.playerIds.getOrNull(state.currentPlayerTurn) == state.myPlayerId
+    val isRobotTurn = activePlayer?.isDisconnected == true
+
     val nextPlayerIndex = (state.currentPlayerTurn + 1) % 4
     val nextPlayerName = state.players.getOrNull(nextPlayerIndex) ?: "Next Player"
     val nextPlayerId = state.playerIds.getOrNull(nextPlayerIndex) ?: ""
@@ -51,7 +57,7 @@ fun MultiplayerLetterSetPlayScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                if (isMyTurn) "YOUR TURN" else "WAITING FOR ${state.players.getOrNull(state.currentPlayerTurn)?.uppercase() ?: "..."}",
+                if (isMyTurn && !isRobotTurn) "YOUR TURN" else "WAITING FOR ${activePlayerName.uppercase()} ${if(isRobotTurn) "(ROBOT)" else ""}",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
                 letterSpacing = 2.sp
@@ -69,12 +75,12 @@ fun MultiplayerLetterSetPlayScreen(
                     LetterCard(
                         letter = card,
                         isSelected = selectedCard == card,
-                        onClick = { if (isMyTurn) selectedCard = card }
+                        onClick = { if (isMyTurn && !isRobotTurn) selectedCard = card }
                     )
                 }
             }
 
-            if (isMyTurn) {
+            if (isMyTurn && !isRobotTurn) {
                 if (selectedCard != null) {
                     Button(
                         onClick = {
@@ -96,11 +102,17 @@ fun MultiplayerLetterSetPlayScreen(
                 }
             } else {
                 Text(
-                    "${state.players.getOrNull(state.currentPlayerTurn) ?: "Player"} is choosing a card...",
+                    if (isRobotTurn) "$activePlayerName is disconnected! Robot is choosing..." 
+                    else "$activePlayerName is choosing a card...",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
                 )
+                if (isRobotTurn) {
+                    Spacer(Modifier.height(16.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
+                }
             }
             
             Spacer(Modifier.height(80.dp))

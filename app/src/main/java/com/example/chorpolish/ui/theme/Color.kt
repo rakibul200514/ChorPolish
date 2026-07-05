@@ -1,8 +1,22 @@
-package com.example.chorpolish.ui.theme
+package com.rakibul.chorpolish.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Vibrant Energetic Palette
+// Professional Game Palette - "Midnight Mystery"
+val GamePrimary = Color(0xFFBB86FC) // Light Purple (Vibrant)
+val GameSecondary = Color(0xFFFFD700) // Royal Gold
+val GameTertiary = Color(0xFF03DAC6) // Mystery Teal
+
+val GameBackgroundStart = Color(0xFF0F0C29) // Deep Space
+val GameBackgroundMid = Color(0xFF302B63) // Midnight Purple
+val GameBackgroundEnd = Color(0xFF24243E) // Dark Navy
+
+val SurfaceGlass = Color(0xFFFFFFFF).copy(alpha = 0.15f) // Increased visibility
+val OnSurfaceVibrant = Color(0xFFF2E7FE) // Near White Purple
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFFBDBDBD)
+
+// Original Vibrant Energetic Palette (Fallback)
 val PrimaryLight = Color(0xFF6750A4)
 val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFEADDFF)

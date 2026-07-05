@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.navigation
+package com.rakibul.chorpolish.ui.navigation
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
@@ -17,4 +17,5 @@ sealed interface NavDestination : NavKey {
     @Serializable data object History : NavDestination
     @Serializable data object Settings : NavDestination
     @Serializable data object GameRules : NavDestination
+    @Serializable data object QrScanner : NavDestination
 }

@@ -1,6 +1,6 @@
-package com.example.chorpolish.data.remote.model
+package com.rakibul.chorpolish.data.remote.model
 
-import com.example.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.GameRole
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
@@ -25,7 +25,8 @@ data class RemotePlayer(
     @Json(name = "playerId") val playerId: String? = null,
     @Json(name = "role") val role: String? = null,
     @Json(name = "score") val score: Int? = 0,
-    @Json(name = "hasSeenRole") val hasSeenRole: Boolean? = false
+    @Json(name = "hasSeenRole") val hasSeenRole: Boolean? = false,
+    @Json(name = "isDisconnected") val isDisconnected: Boolean? = false
 )
 
 @JsonClass(generateAdapter = true)
@@ -42,6 +43,7 @@ data class RoomResponse(
     @Json(name = "rajaPlayer") val rajaPlayer: String? = null,
     @Json(name = "chorPlayer") val chorPlayer: String? = null,
     @Json(name = "sipahiPlayer") val sipahiPlayer: String? = null,
+    @Json(name = "sipahiPlayerId") val sipahiPlayerId: String? = null,
     @Json(name = "guessOptions") val guessOptions: List<String>? = emptyList(),
     @Json(name = "selectedChorGuess") val selectedChorGuess: String? = null,
     @Json(name = "isGuessCorrect") val isGuessCorrect: Boolean? = null,

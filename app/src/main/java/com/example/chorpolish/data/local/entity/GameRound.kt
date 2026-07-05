@@ -1,8 +1,8 @@
-package com.example.chorpolish.data.local.entity
+package com.rakibul.chorpolish.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.GameRole
 
 @Entity(tableName = "game_rounds")
 data class GameRound(

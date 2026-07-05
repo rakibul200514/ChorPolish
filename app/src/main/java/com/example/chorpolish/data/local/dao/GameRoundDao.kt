@@ -1,9 +1,9 @@
-package com.example.chorpolish.data.local.dao
+package com.rakibul.chorpolish.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.chorpolish.data.local.entity.GameRound
+import com.rakibul.chorpolish.data.local.entity.GameRound
 import kotlinx.coroutines.flow.Flow
 
 @Dao

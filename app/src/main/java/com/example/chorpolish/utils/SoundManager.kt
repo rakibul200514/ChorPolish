@@ -1,4 +1,4 @@
-package com.example.chorpolish.utils
+package com.rakibul.chorpolish.utils
 
 import android.content.Context
 import android.media.AudioAttributes
@@ -7,8 +7,8 @@ import android.media.MediaPlayer
 import android.media.SoundPool
 import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
-import com.example.chorpolish.R
-import com.example.chorpolish.data.local.SessionManager
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.data.local.SessionManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,6 +155,20 @@ class SoundManager @Inject constructor(
             it.release()
         }
         mediaPlayer = null
+    }
+
+    fun pauseBackgroundMusic() {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.pause()
+        }
+    }
+
+    fun resumeBackgroundMusic() {
+        scope.launch {
+            if (sessionManager.backgroundMusicEnabled.first() && mediaPlayer != null && !mediaPlayer!!.isPlaying) {
+                mediaPlayer?.start()
+            }
+        }
     }
 
     fun onDestroy() {

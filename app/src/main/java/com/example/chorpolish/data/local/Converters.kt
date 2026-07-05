@@ -1,7 +1,7 @@
-package com.example.chorpolish.data.local
+package com.rakibul.chorpolish.data.local
 
 import androidx.room.TypeConverter
-import com.example.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.GameRole
 
 class Converters {
     @TypeConverter

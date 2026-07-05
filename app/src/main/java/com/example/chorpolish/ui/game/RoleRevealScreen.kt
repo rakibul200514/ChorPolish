@@ -1,10 +1,10 @@
-package com.example.chorpolish.ui.game
+package com.rakibul.chorpolish.ui.game
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
- import androidx.compose.foundation.border
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chorpolish.R
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.ui.menu.DecorativeShapes
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.ui.menu.DecorativeShapes
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,11 +67,20 @@ fun RoleRevealScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { 
-                    Text(
-                        stringResource(R.string.secret_reveal_title), 
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 2.sp
-                    ) 
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            stringResource(R.string.secret_reveal_title), 
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 2.sp
+                            )
+                        )
+                        Text(
+                            "ROUND ${uiState.currentRound} / ${uiState.maxRounds}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
@@ -82,35 +91,60 @@ fun RoleRevealScreen(
         containerColor = Color.Transparent
     ) { innerPadding ->
         val scrollState = rememberScrollState()
-        Box(
+        Column(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                        )
-                    )
-                )
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            DecorativeShapes()
+            if (currentPlayer != null) {
+                Spacer(Modifier.height(24.dp))
+                
+                val humanPlayer = uiState.players.find { !it.isRobot }
+                val isHumanPolice = humanPlayer?.currentRole == GameRole.SIPAHI
 
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                if (currentPlayer != null) {
-                    Spacer(Modifier.height(24.dp))
+                if (currentPlayer.isRobot) {
+                    if (isHumanPolice) {
+                        Text(
+                            "Robot players are seeing their roles...",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(32.dp))
+                        CircularProgressIndicator(color = Color.White)
+                    } else {
+                        Text(
+                            "Robot: ${currentPlayer.name}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Box(modifier = Modifier.width(300.dp)) {
+                            RoleCard(
+                                playerName = currentPlayer.name,
+                                role = currentPlayer.currentRole,
+                                isRevealed = true,
+                                countdown = 0,
+                                onReveal = {}
+                            )
+                        }
+                        Spacer(Modifier.height(24.dp))
+                        Text(
+                            "Auto-progressing...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    }
+                } else {
                     Text(
                         stringResource(R.string.pass_phone_to),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                     Text(
                         currentPlayer.name,
@@ -166,19 +200,19 @@ fun RoleRevealScreen(
                         Text(
                             stringResource(R.string.tap_instruction),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
                     }
-                    
-                    // Extra space at bottom to ensure scrolling past the Banner Ad
-                    Spacer(Modifier.height(100.dp))
-                } else {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            Text("Loading next phase...", modifier = Modifier.padding(top = 16.dp))
-                        }
+                }
+                
+                // Extra space at bottom to ensure scrolling past the Banner Ad
+                Spacer(Modifier.height(100.dp))
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Text("Loading next phase...", modifier = Modifier.padding(top = 16.dp))
                     }
                 }
             }

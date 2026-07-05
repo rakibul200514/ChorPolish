@@ -66,7 +66,7 @@
     <string name="language_current">हिन्दी</string>
     <string name="dark_theme">डार्क थीम</string>
     <string name="dark_theme_desc">सिस्टम सेटिंग्स का पालन करें</string>
-    <string name="version_label">संस्करण 1.0.0</string>
+    <string name="version_label">संस्करण 1.0.3</string>
 
     <!-- Multiplayer -->
     <string name="multiplayer_setup_title">मल्टीप्लेयर सेटअप</string>

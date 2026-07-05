@@ -1,4 +1,4 @@
-package com.example.chorpolish.utils
+package com.rakibul.chorpolish.utils
 
 import android.app.Activity
 import android.util.Log
@@ -23,10 +23,52 @@ class AdManager @Inject constructor() {
     private var isInterstitialLoading = false
     private val TAG = "AdManager"
     
-    // Testing Ad Unit IDs
-    private val REWARDED_AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
-    private val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"
-    private val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+    // Ad Unit IDs
+    private val REWARDED_AD_UNIT_ID = "ca-app-pub-3598041101429640/8218243235"
+    private val INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3598041101429640/1615094873"
+    private val BANNER_AD_UNIT_ID = "ca-app-pub-3598041101429640/6509575744"
+    private val APP_OPEN_AD_UNIT_ID = "ca-app-pub-3598041101429640/7056370658"
+
+    private var appOpenAd: com.google.android.gms.ads.appopen.AppOpenAd? = null
+    private var isAppOpenAdLoading = false
+
+    fun loadAppOpenAd(activity: Activity) {
+        if (appOpenAd != null || isAppOpenAdLoading) return
+        isAppOpenAdLoading = true
+        val adRequest = AdRequest.Builder().build()
+        com.google.android.gms.ads.appopen.AppOpenAd.load(
+            activity,
+            APP_OPEN_AD_UNIT_ID,
+            adRequest,
+            object : com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback() {
+                override fun onAdLoaded(ad: com.google.android.gms.ads.appopen.AppOpenAd) {
+                    isAppOpenAdLoading = false
+                    appOpenAd = ad
+                    Log.d(TAG, "App Open Ad loaded.")
+                }
+
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    isAppOpenAdLoading = false
+                    appOpenAd = null
+                    Log.e(TAG, "App Open Ad failed: ${loadAdError.message}")
+                }
+            }
+        )
+    }
+
+    fun showAppOpenAd(activity: Activity) {
+        if (appOpenAd != null) {
+            appOpenAd?.fullScreenContentCallback = object : com.google.android.gms.ads.FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    appOpenAd = null
+                    loadAppOpenAd(activity)
+                }
+            }
+            appOpenAd?.show(activity)
+        } else {
+            loadAppOpenAd(activity)
+        }
+    }
 
     fun loadRewardAd(activity: Activity) {
         if (rewardedAd != null || isAdLoading) return

@@ -47,6 +47,8 @@ hilt-navigation-compose = "1.3.0"
 socket-io = "2.1.2"
 lottieCompose = "6.4.0"
 google-errorprone-annotations = "2.50.0"
+zxing = "3.5.3"
+barcode-scanning = "17.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -103,6 +105,8 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 socket-io-client = { group = "io.socket", name = "socket.io-client", version.ref = "socket-io" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottieCompose" }
 google-errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "google-errorprone-annotations" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcode-scanning" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

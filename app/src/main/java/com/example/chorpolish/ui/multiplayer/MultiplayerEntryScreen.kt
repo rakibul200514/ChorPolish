@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.multiplayer
+package com.rakibul.chorpolish.ui.multiplayer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,10 +14,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.chorpolish.R
+import com.rakibul.chorpolish.R
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import com.rakibul.chorpolish.ui.theme.GameSecondary
+
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,11 +30,37 @@ fun MultiplayerEntryScreen(
     error: String?,
     onJoinRoom: (String, String) -> Unit,
     onCreateRoom: (String) -> Unit,
-    onBack: () -> Unit
+    onScanQr: () -> Unit,
+    onBack: () -> Unit,
+    viewModel: MultiplayerViewModel = hiltViewModel()
 ) {
+    val state by viewModel.uiState.collectAsState()
     var name by remember { mutableStateOf("") }
+    
+    // Load saved name once
+    LaunchedEffect(Unit) {
+        if (state.myName.isNotEmpty()) {
+            name = state.myName
+        }
+    }
     var roomCode by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+
+    // Sync with scanned code
+    LaunchedEffect(state.scannedRoomCode) {
+        state.scannedRoomCode?.let {
+            roomCode = it
+            viewModel.setScannedRoomCode(null) // Clear it
+            
+            // Auto-join if name is valid
+            if (name.isNotBlank()) {
+                onJoinRoom(name, it)
+            } else {
+                // If name is empty, we just fill the code and maybe show a hint
+                // But as per user request, we want to join with name
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -79,7 +110,16 @@ fun MultiplayerEntryScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.join_existing_room), fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.join_existing_room), fontWeight = FontWeight.Bold)
+                        IconButton(onClick = onScanQr) {
+                            Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Scan QR", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = roomCode,

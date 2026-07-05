@@ -1,36 +1,44 @@
-package com.example.chorpolish.ui.theme
+package com.rakibul.chorpolish.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.rakibul.chorpolish.ui.menu.DecorativeShapes
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryDark,
-    onPrimary = OnPrimaryDark,
-    primaryContainer = PrimaryContainerDark,
-    onPrimaryContainer = OnPrimaryContainerDark,
-    secondary = SecondaryDark,
-    onSecondary = OnSecondaryDark,
-    secondaryContainer = SecondaryContainerDark,
-    onSecondaryContainer = OnSecondaryContainerDark,
-    tertiary = TertiaryDark,
-    onTertiary = OnTertiaryDark,
-    tertiaryContainer = TertiaryContainerDark,
-    onTertiaryContainer = OnTertiaryContainerDark,
+    primary = GamePrimary,
+    onPrimary = Color.Black,
+    primaryContainer = GameBackgroundMid,
+    onPrimaryContainer = OnSurfaceVibrant,
+    secondary = GameSecondary,
+    onSecondary = Color.Black,
+    secondaryContainer = GameBackgroundEnd,
+    onSecondaryContainer = OnSurfaceVibrant,
+    tertiary = GameTertiary,
+    onTertiary = Color.Black,
+    tertiaryContainer = GameBackgroundStart,
+    onTertiaryContainer = OnSurfaceVibrant,
     error = ErrorDark,
     onError = OnErrorDark,
     errorContainer = ErrorContainerDark,
     onErrorContainer = OnErrorContainerDark,
-    background = BackgroundDark,
-    onBackground = OnBackgroundDark,
-    surface = SurfaceDark,
-    onSurface = OnSurfaceDark
+    background = GameBackgroundStart,
+    onBackground = Color.White,
+    surface = GameBackgroundMid.copy(alpha = 0.85f),
+    onSurface = Color.White,
+    onSurfaceVariant = Color.White.copy(alpha = 0.7f),
+    outline = Color.White.copy(alpha = 0.3f),
+    outlineVariant = Color.White.copy(alpha = 0.1f)
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -58,22 +66,37 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun ChorPolishTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = true, // Default to true for game feel
+    dynamicColor: Boolean = false, // Disable dynamic for branding consistency
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
         content = content
     )
+}
+
+@Composable
+fun GameScreenWrapper(
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        GameBackgroundStart,
+                        GameBackgroundMid,
+                        GameBackgroundEnd
+                    )
+                )
+            )
+    ) {
+        DecorativeShapes()
+        content()
+    }
 }

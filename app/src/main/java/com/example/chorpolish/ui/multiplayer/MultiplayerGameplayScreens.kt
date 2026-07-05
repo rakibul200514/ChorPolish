@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.multiplayer
+package com.rakibul.chorpolish.ui.multiplayer
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -26,13 +26,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import android.app.Activity
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.data.model.Player
-import com.example.chorpolish.ui.game.*
-import com.example.chorpolish.ui.menu.DecorativeShapes
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.Player
+import com.rakibul.chorpolish.ui.game.*
+import com.rakibul.chorpolish.ui.components.BannerAd
 import kotlinx.coroutines.delay
-import com.example.chorpolish.R
-import com.example.chorpolish.utils.SoundEffect
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.utils.SoundEffect
 import com.airbnb.lottie.compose.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,12 +54,12 @@ fun MultiplayerRoleRevealScreen(
     LaunchedEffect(isRevealed) {
         if (isRevealed) {
             state.myRole?.let { viewModel.playRoleAnnouncement(it) }
-            viewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.CARD_FLIP)
+            viewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.CARD_FLIP)
             countdown = 3
             while (countdown > 0) {
                 delay(1000)
                 countdown--
-                if (countdown > 0) viewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.COUNTDOWN_TICK)
+                if (countdown > 0) viewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.COUNTDOWN_TICK)
             }
             isRevealed = false
             hasSeenRole = true
@@ -67,63 +67,48 @@ fun MultiplayerRoleRevealScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                    )
-                )
-            )
+            .verticalScroll(scrollState)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        DecorativeShapes()
+        Text(
+            "YOUR SECRET ROLE",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+            letterSpacing = 2.sp
+        )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                "YOUR SECRET ROLE",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                letterSpacing = 2.sp
+        Spacer(Modifier.height(32.dp))
+
+        if (!isRevealed && !hasSeenRole) {
+            // Using the unified RoleCard from RoleRevealScreen
+            RoleCard(
+                playerName = state.myName,
+                role = state.myRole,
+                isRevealed = false,
+                countdown = 3,
+                onReveal = { isRevealed = true }
             )
-
-            Spacer(Modifier.height(32.dp))
-
-            if (!isRevealed && !hasSeenRole) {
-                // Using the unified RoleCard from RoleRevealScreen
-                RoleCard(
-                    playerName = state.myName,
-                    role = state.myRole,
-                    isRevealed = false,
-                    countdown = 3,
-                    onReveal = { isRevealed = true }
-                )
-            } else if (isRevealed) {
-                RoleCard(
-                    playerName = state.myName,
-                    role = state.myRole,
-                    isRevealed = true,
-                    countdown = countdown,
-                    onReveal = {}
-                )
-            } else {
-                Text(
-                    "Waiting for others...",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.height(16.dp))
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
+        } else if (isRevealed) {
+            RoleCard(
+                playerName = state.myName,
+                role = state.myRole,
+                isRevealed = true,
+                countdown = countdown,
+                onReveal = {}
+            )
+        } else {
+            Text(
+                "Waiting for others...",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.height(16.dp))
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -173,12 +158,15 @@ fun MultiplayerGuessingScreen(
     viewModel: MultiplayerViewModel,
     state: MultiplayerUiState
 ) {
-    val isPolice = state.myRole == GameRole.SIPAHI
+    // Highly robust check: By ID first, then fallback to Name, then fallback to Role
+    val isPolice = (state.myPlayerId == state.sipahiPlayerId && state.myPlayerId.isNotEmpty()) || 
+                   (state.myName == state.sipahiPlayer) ||
+                   (state.myRole == GameRole.SIPAHI)
+
+    val sipahiIsDisconnected = state.remotePlayers.find { it.name == state.sipahiPlayer }?.isDisconnected ?: false
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        DecorativeShapes()
-        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -195,7 +183,7 @@ fun MultiplayerGuessingScreen(
             
             Spacer(Modifier.height(24.dp))
 
-            if (isPolice) {
+            if (isPolice && !sipahiIsDisconnected) {
                 Text(
                     "Choose who is the THIEF",
                     style = MaterialTheme.typography.bodyLarge,
@@ -219,13 +207,20 @@ fun MultiplayerGuessingScreen(
                     }
                 }
             } else {
+                val statusText = if (sipahiIsDisconnected) {
+                    "Police is disconnected! Robot is choosing..."
+                } else {
+                    "Police (${state.sipahiPlayer}) is guessing..."
+                }
+                
                 Text(
-                    "Police is guessing...",
+                    statusText,
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(16.dp))
-                CircularProgressIndicator()
+                Spacer(Modifier.height(32.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
             }
         }
         
@@ -274,22 +269,34 @@ fun MultiplayerResultScreen(
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.weight(1f)) {
+                    val context = LocalContext.current
+                    val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
                     ResultScreen(
                         uiState = GameUiState(
                             isGuessCorrect = state.isGuessCorrect,
                             roundResults = state.roundScoresWithRoles.map { (name, score, role) ->
                                 PlayerScore(name, role ?: GameRole.CHOR, score)
-                            }
+                            },
+                            currentRound = state.currentRound,
+                            maxRounds = state.maxRounds
                         ),
                         onNextRound = {
                             if (state.isHost) {
-                                viewModel.triggerNextRound()
+                                if (state.currentRound >= state.maxRounds) {
+                                    adManager.showInterstitialAd(context as Activity) {
+                                        viewModel.triggerNextRound()
+                                    }
+                                } else {
+                                    viewModel.triggerNextRound()
+                                }
                             }
                         },
                         onFinishGame = {
                             if (state.isHost) {
-                                viewModel.triggerFinishGame()
-                                onFinish()
+                                adManager.showInterstitialAd(context as Activity) {
+                                    viewModel.triggerFinishGame()
+                                    onFinish()
+                                }
                             }
                         },
                         showButtons = state.isHost
@@ -350,16 +357,7 @@ fun PersonalCelebrationScreen(rank: Int, myName: String) {
     )
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.colorScheme.surfaceVariant
-                    )
-                )
-            ),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         if (rank == 1) {
@@ -442,7 +440,7 @@ fun MultiplayerLetterSetRevealContent(
     val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
-        viewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.CARD_FLIP)
+        viewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.CARD_FLIP)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -579,7 +577,7 @@ fun MultiplayerLetterSetResultContent(
 
             if (state.isHost) {
                 val context = LocalContext.current
-                val adManager = remember { com.example.chorpolish.utils.AdManager() }
+                val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
                 Button(
                     onClick = { 
                         if (isLastRound) {
@@ -623,6 +621,7 @@ fun MultiplayerLetterSetResultContent(
 @Composable
 fun FinalCelebrationMultiplayer(scores: List<Pair<String, Int>>) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        BannerAd(modifier = Modifier.padding(bottom = 16.dp))
         Icon(
             Icons.Rounded.EmojiEvents,
             contentDescription = null,

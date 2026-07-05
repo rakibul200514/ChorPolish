@@ -1,14 +1,14 @@
-package com.example.chorpolish.ui.game
+package com.rakibul.chorpolish.ui.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chorpolish.data.local.entity.GameRound
-import com.example.chorpolish.data.local.SessionManager
-import com.example.chorpolish.data.model.GameRole
-import com.example.chorpolish.data.model.Player
-import com.example.chorpolish.data.repository.GameRepository
-import com.example.chorpolish.utils.SoundEffect
-import com.example.chorpolish.utils.SoundManager
+import com.rakibul.chorpolish.data.local.entity.GameRound
+import com.rakibul.chorpolish.data.local.SessionManager
+import com.rakibul.chorpolish.data.model.GameRole
+import com.rakibul.chorpolish.data.model.Player
+import com.rakibul.chorpolish.data.repository.GameRepository
+import com.rakibul.chorpolish.utils.SoundEffect
+import com.rakibul.chorpolish.utils.SoundManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -21,10 +21,10 @@ enum class GameMode {
 
 data class GameUiState(
     val players: List<Player> = listOf(
-        Player(0, "Player 1"),
-        Player(1, "Player 2"),
-        Player(2, "Player 3"),
-        Player(3, "Player 4")
+        Player(0, "You", isRobot = false),
+        Player(1, "Robot 1", isRobot = true),
+        Player(2, "Robot 2", isRobot = true),
+        Player(3, "Robot 3", isRobot = true)
     ),
     val currentRound: Int = 1,
     val phase: GamePhase = GamePhase.SETUP,
@@ -34,6 +34,7 @@ data class GameUiState(
     val chorPlayer: Player? = null,
     val sipahiPlayer: Player? = null,
     val guessOptions: List<Player> = emptyList(),
+    val lastPassedCard: String? = null, // Store last passed card for Letter Set visibility
     val selectedChorGuess: Player? = null,
     val isGuessCorrect: Boolean? = null,
     val roundResults: List<PlayerScore> = emptyList(),
@@ -140,6 +141,7 @@ class GameViewModel @Inject constructor(
                 players = resetPlayers,
                 phase = GamePhase.ROLE_REVEAL, // Reuse reveal to show initial cards
                 playerCards = finalCards,
+                lastPassedCard = null,
                 winner = null,
                 currentPlayerTurn = 0,
                 isGuessCorrect = null,
@@ -180,10 +182,11 @@ class GameViewModel @Inject constructor(
             }
 
             // Next player index
-            val nextPlayerIndex = (state.currentPlayerTurn + 1) % 4
+            val nextPlayerIndex = (state.players.indexOfFirst { it.id == fromPlayerId } + 1) % 4
 
             state.copy(
                 playerCards = newPlayerCards,
+                lastPassedCard = card,
                 winner = winner,
                 phase = if (winner != null) GamePhase.RESULT else state.phase,
                 currentPlayerTurn = nextPlayerIndex,
@@ -193,6 +196,29 @@ class GameViewModel @Inject constructor(
                     p.copy(sessionScore = p.sessionScore + addedScore)
                 }
             )
+        }
+
+        // Robot Turn Logic for Letter Set
+        val currentState = _uiState.value
+        if (currentState.gameMode == GameMode.LETTER_SET && currentState.phase == GamePhase.PLAYING && currentState.winner == null) {
+            val activePlayer = currentState.players[currentState.currentPlayerTurn]
+            if (activePlayer.isRobot) {
+                viewModelScope.launch {
+                    kotlinx.coroutines.delay(2000) // "Thinking" and visibility delay
+                    
+                    val robotCards = currentState.playerCards[activePlayer.id] ?: emptyList()
+                    if (robotCards.isNotEmpty()) {
+                        // Robot Strategy: Pass a card that doesn't have a pair, or just a random one.
+                        // Count occurrences of each letter
+                        val counts = robotCards.groupingBy { it }.eachCount()
+                        // Find a letter that has the minimum count (least likely to form a set soon)
+                        val cardToPass = counts.minByOrNull { it.value }?.key ?: robotCards.random()
+                        
+                        val nextPlayerId = currentState.players[(currentState.currentPlayerTurn + 1) % 4].id
+                        passCard(activePlayer.id, nextPlayerId, cardToPass)
+                    }
+                }
+            }
         }
     }
 
@@ -246,7 +272,8 @@ class GameViewModel @Inject constructor(
                 selectedChorGuess = null,
                 isGuessCorrect = null,
                 roundResults = emptyList(),
-                guessOptions = emptyList() // Clear options for new round
+                guessOptions = emptyList(),
+                currentRound = if (state.phase == GamePhase.RESULT) state.currentRound + 1 else state.currentRound
             )
         }
     }
@@ -280,6 +307,34 @@ class GameViewModel @Inject constructor(
                 state.copy(players = updatedPlayers)
             }
         }
+
+        val currentState = _uiState.value
+        
+        // Auto-progress for Robots in Reveal Phase
+        if (currentState.phase == GamePhase.ROLE_REVEAL) {
+            val nextPlayer = currentState.players.find { !it.hasSeenRole }
+            if (nextPlayer != null && nextPlayer.isRobot) {
+                viewModelScope.launch {
+                    val humanPlayer = currentState.players.find { !it.isRobot }
+                    val isHumanPolice = humanPlayer?.currentRole == GameRole.SIPAHI
+                    
+                    // Delay to let human see the robot's role (unless human is Police)
+                    val delayTime = if (isHumanPolice) 1200L else 3000L
+                    kotlinx.coroutines.delay(delayTime)
+                    playerSawRole(nextPlayer.id)
+                }
+            }
+        }
+
+        // Robot Guessing Logic
+        if (currentState.phase == GamePhase.GUESSING && currentState.sipahiPlayer?.isRobot == true) {
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(2000) // Thinking time
+                val suspects = currentState.guessOptions
+                val randomGuess = suspects.random()
+                makeGuess(randomGuess)
+            }
+        }
     }
 
     fun makeGuess(guessedChor: Player) {
@@ -303,8 +358,7 @@ class GameViewModel @Inject constructor(
                 phase = GamePhase.RESULT,
                 selectedChorGuess = guessedChor,
                 isGuessCorrect = isCorrect,
-                roundResults = results,
-                currentRound = state.currentRound + 1
+                roundResults = results
             )
         }
     }
@@ -362,7 +416,12 @@ class GameViewModel @Inject constructor(
     fun resetGame() {
         _uiState.update { 
             GameUiState(
-                players = it.players.map { p -> p.copy(sessionScore = 0, currentRole = null, hasSeenRole = false) },
+                players = listOf(
+                    Player(0, it.players[0].name, isRobot = false),
+                    Player(1, "Robot 1", isRobot = true),
+                    Player(2, "Robot 2", isRobot = true),
+                    Player(3, "Robot 3", isRobot = true)
+                ),
                 currentRound = 1,
                 phase = GamePhase.SETUP
             )

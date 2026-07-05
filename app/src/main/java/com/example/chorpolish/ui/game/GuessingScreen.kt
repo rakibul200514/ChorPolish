@@ -1,12 +1,14 @@
-package com.example.chorpolish.ui.game
+package com.rakibul.chorpolish.ui.game
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Person
@@ -27,11 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.chorpolish.R
-import com.example.chorpolish.data.model.Player
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import com.example.chorpolish.ui.menu.DecorativeShapes
+import com.rakibul.chorpolish.R
+import com.rakibul.chorpolish.data.model.Player
+import com.rakibul.chorpolish.ui.menu.DecorativeShapes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,111 +47,124 @@ fun GuessingScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { 
-                    Text(
-                        stringResource(R.string.police_choice_title), 
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 2.sp
-                    ) 
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            stringResource(R.string.police_choice_title), 
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 2.sp
+                            ),
+                            color = Color.White
+                        )
+                        Text(
+                            "ROUND ${uiState.currentRound} / ${uiState.maxRounds}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+                    titleContentColor = Color.White
                 )
             )
         },
         containerColor = Color.Transparent
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                        )
-                    )
-                )
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DecorativeShapes()
-
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val maxWidth = maxWidth
-                val contentWidth = if (maxWidth > 600.dp) 500.dp else maxWidth
-                
+            if (uiState.sipahiPlayer?.isRobot == true) {
                 Column(
-                    modifier = Modifier.width(contentWidth).align(Alignment.TopCenter),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    // Role Announcement - Show Police as the one guessing
-                    AnnouncementCard(
-                        playerName = uiState.sipahiPlayer?.name ?: "???",
-                        role = "POLICE",
-                        instruction = stringResource(R.string.guessing_instruction)
-                    )
-
-                    Spacer(Modifier.height(32.dp))
-
+                    Spacer(Modifier.height(100.dp))
                     Text(
-                        stringResource(R.string.the_suspects),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        "${uiState.sipahiPlayer.name} is thinking...",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White
                     )
+                    Spacer(Modifier.height(24.dp))
+                    CircularProgressIndicator(color = Color.White)
+                }
+            } else {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val maxWidth = maxWidth
+                    val contentWidth = if (maxWidth > 600.dp) 500.dp else maxWidth
+                    
+                    Column(
+                        modifier = Modifier.width(contentWidth).align(Alignment.TopCenter),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Role Announcement - Show Police as the one guessing
+                        AnnouncementCard(
+                            playerName = uiState.sipahiPlayer?.name ?: "???",
+                            role = "POLICE",
+                            instruction = stringResource(R.string.guessing_instruction)
+                        )
 
-                    val suspects = uiState.guessOptions.filter { it.id != uiState.sipahiPlayer?.id }
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        suspects.chunked(if (maxWidth > 400.dp) 2 else 1).forEach { rowSuspects ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                rowSuspects.forEach { player ->
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        SuspectCard(
-                                            player = player,
-                                            isSelected = selectedPlayer == player,
-                                            onClick = { selectedPlayer = player }
-                                        )
+                        Spacer(Modifier.height(32.dp))
+
+                        Text(
+                            stringResource(R.string.the_suspects),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        val suspects = uiState.guessOptions.filter { it.id != uiState.sipahiPlayer?.id }
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            suspects.chunked(if (maxWidth > 400.dp) 2 else 1).forEach { rowSuspects ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                    rowSuspects.forEach { player ->
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            SuspectCard(
+                                                player = player,
+                                                isSelected = selectedPlayer == player,
+                                                onClick = { selectedPlayer = player }
+                                            )
+                                        }
                                     }
-                                }
-                                if (rowSuspects.size == 1 && maxWidth > 400.dp) {
-                                    Spacer(modifier = Modifier.weight(1f))
+                                    if (rowSuspects.size == 1 && maxWidth > 400.dp) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    Spacer(Modifier.height(32.dp))
+                        Spacer(Modifier.height(32.dp))
 
-                    Button(
-                        onClick = { showConfirmDialog = true },
-                        enabled = selectedPlayer != null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.confirm_guess),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Button(
+                            onClick = { showConfirmDialog = true },
+                            enabled = selectedPlayer != null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                        ) {
+                            Text(
+                                stringResource(R.string.confirm_guess),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                        
+                        // Extra spacer to scroll past the Banner Ad
+                        Spacer(Modifier.height(140.dp))
                     }
-                    
-                    // Extra spacer to scroll past the Banner Ad
-                    Spacer(Modifier.height(140.dp))
                 }
             }
         }
     }
-}
 
     if (showConfirmDialog && selectedPlayer != null) {
         AlertDialog(
@@ -183,9 +196,10 @@ fun AnnouncementCard(playerName: String, role: String, instruction: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+            containerColor = Color.White.copy(alpha = 0.12f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
@@ -205,7 +219,7 @@ fun AnnouncementCard(playerName: String, role: String, instruction: String) {
                 playerName.uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = Color.White,
                 letterSpacing = 2.sp
             )
             Text(
@@ -216,14 +230,14 @@ fun AnnouncementCard(playerName: String, role: String, instruction: String) {
             )
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 20.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f)
             )
             Text(
                 instruction,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
     }
@@ -258,11 +272,11 @@ fun SuspectCard(
             width = if (isSelected) 3.dp else 1.dp,
             brush = if (isSelected) Brush.linearGradient(
                 listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-            ) else SolidColor(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            ) else SolidColor(Color.White.copy(alpha = 0.1f))
         ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) 
-                             else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) 
+                             else Color.White.copy(alpha = 0.1f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 8.dp else 2.dp)
     ) {
@@ -271,14 +285,14 @@ fun SuspectCard(
                 Surface(
                     modifier = Modifier.size(64.dp),
                     shape = CircleShape,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Rounded.Person,
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
-                            tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White
                         )
                     }
                 }
@@ -287,14 +301,14 @@ fun SuspectCard(
                     player.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 Text(
                     "SUSPECT",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.6f)
                 )
             }
             

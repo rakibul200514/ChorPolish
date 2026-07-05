@@ -1,8 +1,9 @@
-package com.example.chorpolish
+package com.rakibul.chorpolish
 
 import android.os.Bundle
 import android.app.Activity
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -23,26 +24,27 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import java.util.*
-import com.example.chorpolish.ui.game.GamePhase
-import com.example.chorpolish.ui.game.GameViewModel
-import com.example.chorpolish.ui.game.PlayerSetupScreen
-import com.example.chorpolish.ui.game.RoleRevealScreen
-import com.example.chorpolish.ui.game.GuessingScreen
-import com.example.chorpolish.ui.game.ResultScreen
-import com.example.chorpolish.ui.history.HistoryScreen
-import com.example.chorpolish.ui.history.HistoryViewModel
-import com.example.chorpolish.ui.game.LetterSetPlayScreen
-import com.example.chorpolish.ui.game.LetterSetRevealScreen
-import com.example.chorpolish.ui.menu.MainMenuScreen
-import com.example.chorpolish.ui.menu.GameModeSelectionScreen
-import com.example.chorpolish.ui.game.GameMode
-import com.example.chorpolish.ui.settings.SettingsScreen
-import com.example.chorpolish.ui.rules.GameRulesScreen
-import com.example.chorpolish.ui.multiplayer.*
-import com.example.chorpolish.ui.navigation.NavDestination
-import com.example.chorpolish.ui.theme.ChorPolishTheme
-import com.example.chorpolish.utils.MusicType
-import com.example.chorpolish.utils.SoundManager
+import com.rakibul.chorpolish.ui.game.GamePhase
+import com.rakibul.chorpolish.ui.game.GameViewModel
+import com.rakibul.chorpolish.ui.game.PlayerSetupScreen
+import com.rakibul.chorpolish.ui.game.RoleRevealScreen
+import com.rakibul.chorpolish.ui.game.GuessingScreen
+import com.rakibul.chorpolish.ui.game.ResultScreen
+import com.rakibul.chorpolish.ui.history.HistoryScreen
+import com.rakibul.chorpolish.ui.history.HistoryViewModel
+import com.rakibul.chorpolish.ui.game.LetterSetPlayScreen
+import com.rakibul.chorpolish.ui.game.LetterSetRevealScreen
+import com.rakibul.chorpolish.ui.menu.MainMenuScreen
+import com.rakibul.chorpolish.ui.menu.GameModeSelectionScreen
+import com.rakibul.chorpolish.ui.game.GameMode
+import com.rakibul.chorpolish.ui.settings.SettingsScreen
+import com.rakibul.chorpolish.ui.rules.GameRulesScreen
+import com.rakibul.chorpolish.ui.multiplayer.*
+import com.rakibul.chorpolish.ui.navigation.NavDestination
+import com.rakibul.chorpolish.ui.theme.ChorPolishTheme
+import com.rakibul.chorpolish.ui.theme.GameScreenWrapper
+import com.rakibul.chorpolish.utils.MusicType
+import com.rakibul.chorpolish.utils.SoundManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -81,30 +83,50 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        soundManager.resumeBackgroundMusic()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        soundManager.pauseBackgroundMusic()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         soundManager.onDestroy()
+        // Force kill the process to ensure all background resources (like music/ExoPlayer) stop immediately
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
 }
 
 @Composable
 fun MainNavigation(soundManager: SoundManager) {
     val context = LocalContext.current
-    val adManager = remember { com.example.chorpolish.utils.AdManager() }
+    val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
     val gameViewModel: GameViewModel = viewModel()
     
     LaunchedEffect(Unit) {
-        (context as? Activity)?.let { adManager.loadInterstitialAd(it) }
+        (context as? Activity)?.let {
+            adManager.loadInterstitialAd(it)
+            adManager.loadAppOpenAd(it)
+        }
     }
     val historyViewModel: HistoryViewModel = viewModel()
     val multiplayerViewModel: MultiplayerViewModel = viewModel()
-    val settingsViewModel: com.example.chorpolish.ui.settings.SettingsViewModel = hiltViewModel()
+    val settingsViewModel: com.rakibul.chorpolish.ui.settings.SettingsViewModel = hiltViewModel()
     
     val uiState by gameViewModel.uiState.collectAsState()
     val historyUiState by historyViewModel.uiState.collectAsState()
     val multiplayerUiState by multiplayerViewModel.uiState.collectAsState()
     
     val backStack = rememberNavBackStack(NavDestination.MainMenu)
+    
+    // Fix: Handle Back button correctly when on the Main Menu to exit the app
+    BackHandler(enabled = backStack.size == 1) {
+        (context as? Activity)?.finish()
+    }
 
     LaunchedEffect(backStack.last()) {
         val currentDestination = backStack.last()
@@ -204,18 +226,19 @@ fun MainNavigation(soundManager: SoundManager) {
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets.systemBars
+        contentWindowInsets = WindowInsets.systemBars,
+        containerColor = Color.Transparent
     ) { innerPadding ->
-        Surface(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Box {
+        GameScreenWrapper {
+            Box(modifier = Modifier.padding(innerPadding)) {
                 NavDisplay(
                     backStack = backStack,
                     onBack = { 
                         if (backStack.size > 1) {
                             backStack.removeAt(backStack.size - 1)
+                        } else {
+                            // If only MainMenu is left, exit the app
+                            (context as? Activity)?.finish()
                         }
                     },
                     entryProvider = entryProvider {
@@ -250,7 +273,7 @@ fun MainNavigation(soundManager: SoundManager) {
                         entry<NavDestination.MatchTypeSelection> { destination ->
                             val unlocked by settingsViewModel.longMatchUnlocked.collectAsState()
 
-                            com.example.chorpolish.ui.menu.MatchTypeSelectionScreen(
+                            com.rakibul.chorpolish.ui.menu.MatchTypeSelectionScreen(
                                 isMultiplayer = destination.isMultiplayer,
                                 gameMode = destination.gameMode,
                                 isLongMatchUnlocked = unlocked,
@@ -287,6 +310,24 @@ fun MainNavigation(soundManager: SoundManager) {
                                 onCreateRoom = { name ->
                                     multiplayerViewModel.createRoom(name, uiState.gameMode.name, uiState.maxRounds)
                                 },
+                                onScanQr = {
+                                    backStack.add(NavDestination.QrScanner)
+                                },
+                                onBack = {
+                                    backStack.removeAt(backStack.size - 1)
+                                }
+                            )
+                        }
+                        entry<NavDestination.QrScanner> {
+                            QrScannerScreen(
+                                onQrScanned = { code ->
+                                    // Set the scanned code and go back to entry
+                                    // Actually, we can join directly if we have a name
+                                    // For simplicity, let's just go back and joinRoom if possible
+                                    // Or better, update a shared state
+                                    multiplayerViewModel.setScannedRoomCode(code)
+                                    backStack.removeAt(backStack.size - 1)
+                                },
                                 onBack = {
                                     backStack.removeAt(backStack.size - 1)
                                 }
@@ -298,10 +339,12 @@ fun MainNavigation(soundManager: SoundManager) {
                             players = multiplayerUiState.players,
                             myName = multiplayerUiState.myName,
                             isHost = multiplayerUiState.isHost,
-                            onStartGame = { mode ->
-                                multiplayerViewModel.triggerStart(mode)
+                            initialGameMode = multiplayerUiState.gameMode,
+                            onStartGame = { mode, rounds ->
+                                multiplayerViewModel.triggerStart(mode, rounds)
                             },
                             onLeaveRoom = {
+                                multiplayerViewModel.leaveRoom()
                                 backStack.removeAt(backStack.size - 1)
                             }
                         )
@@ -317,7 +360,7 @@ fun MainNavigation(soundManager: SoundManager) {
                                             gameViewModel.playerSawRole(playerId)
                                         },
                                         onRevealCards = {
-                                            gameViewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.CARD_FLIP)
+                                            gameViewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.CARD_FLIP)
                                         }
                                     )
                                 } else {
@@ -328,10 +371,10 @@ fun MainNavigation(soundManager: SoundManager) {
                                         },
                                         onRevealCard = { role ->
                                             gameViewModel.playRoleAnnouncement(role)
-                                            gameViewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.CARD_FLIP)
+                                            gameViewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.CARD_FLIP)
                                         },
                                         onCountdownTick = {
-                                            gameViewModel.playSoundEffect(com.example.chorpolish.utils.SoundEffect.COUNTDOWN_TICK)
+                                            gameViewModel.playSoundEffect(com.rakibul.chorpolish.utils.SoundEffect.COUNTDOWN_TICK)
                                         }
                                     )
                                 }
@@ -368,6 +411,7 @@ fun MainNavigation(soundManager: SoundManager) {
                                     viewModel = multiplayerViewModel, 
                                     state = multiplayerUiState, 
                                     onFinish = { 
+                                        multiplayerViewModel.leaveRoom()
                                         adManager.showInterstitialAd(context as Activity) {
                                             // Clear all screens from backstack and go to MainMenu
                                             while (backStack.size > 0) {

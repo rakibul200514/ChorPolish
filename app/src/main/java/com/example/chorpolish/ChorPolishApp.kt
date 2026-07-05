@@ -1,4 +1,4 @@
-package com.example.chorpolish
+package com.rakibul.chorpolish
 
 import android.app.Application
 import com.google.android.gms.ads.MobileAds

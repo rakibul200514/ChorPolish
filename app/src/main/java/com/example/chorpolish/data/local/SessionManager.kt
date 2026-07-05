@@ -1,4 +1,4 @@
-package com.example.chorpolish.data.local
+package com.rakibul.chorpolish.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore

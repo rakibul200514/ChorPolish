@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.menu
+package com.rakibul.chorpolish.ui.menu
 
 import android.app.Activity
 import androidx.compose.foundation.background
@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.chorpolish.ui.game.GameMode
-import com.example.chorpolish.utils.AdManager
+import com.rakibul.chorpolish.ui.game.GameMode
+import com.rakibul.chorpolish.utils.AdManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,20 +80,13 @@ fun MatchTypeSelectionScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = Color.Transparent
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                        )
-                    )
-                )
                 .verticalScroll(scrollState)
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)

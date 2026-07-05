@@ -1,4 +1,4 @@
-package com.example.chorpolish.ui.components
+package com.rakibul.chorpolish.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
