@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Sync
@@ -36,7 +36,7 @@ fun MultiplayerLetterSetPlayScreen(
     val nextPlayerName = state.players.getOrNull(nextPlayerIndex) ?: "Next Player"
     val nextPlayerId = state.playerIds.getOrNull(nextPlayerIndex) ?: ""
     
-    var selectedCard by remember(state.currentPlayerTurn) { mutableStateOf<String?>(null) }
+    var selectedIndex by remember(state.currentPlayerTurn) { mutableIntStateOf(-1) }
 
     Box(
         modifier = Modifier
@@ -71,31 +71,31 @@ fun MultiplayerLetterSetPlayScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(myCards) { card ->
+                itemsIndexed(myCards) { index, card ->
                     LetterCard(
                         letter = card,
-                        isSelected = selectedCard == card,
-                        onClick = { if (isMyTurn && !isRobotTurn) selectedCard = card }
+                        isSelected = selectedIndex == index,
+                        onClick = { if (isMyTurn && !isRobotTurn) selectedIndex = index }
                     )
                 }
             }
 
             if (isMyTurn && !isRobotTurn) {
-                if (selectedCard != null) {
+                if (selectedIndex != -1) {
                     Button(
                         onClick = {
-                            viewModel.passCard(nextPlayerId, selectedCard!!) 
+                            viewModel.passCard(nextPlayerId, myCards[selectedIndex]) 
                         },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Icon(Icons.Rounded.Sync, contentDescription = null)
                         Spacer(Modifier.width(12.dp))
-                        Text("PASS TO $nextPlayerName", fontWeight = FontWeight.Bold)
+                        Text("PASS '${myCards[selectedIndex]}' TO $nextPlayerName", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     Text(
-                        "Select a card to pass to $nextPlayerName",
+                        "Select one card to pass to $nextPlayerName",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

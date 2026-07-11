@@ -158,10 +158,17 @@ fun MultiplayerGuessingScreen(
     viewModel: MultiplayerViewModel,
     state: MultiplayerUiState
 ) {
-    // Highly robust check: By ID first, then fallback to Name, then fallback to Role
+    // Robust check for Police role
     val isPolice = (state.myPlayerId == state.sipahiPlayerId && state.myPlayerId.isNotEmpty()) || 
-                   (state.myName == state.sipahiPlayer) ||
+                   (state.myName == state.sipahiPlayer && state.myName.isNotEmpty()) ||
                    (state.myRole == GameRole.SIPAHI)
+
+    // Log for debugging if nobody is identified as police locally
+    LaunchedEffect(state.phase, state.sipahiPlayer, state.sipahiPlayerId) {
+        if (state.phase == "GUESSING" && !isPolice) {
+            android.util.Log.d("Multiplayer", "Waiting for police: ${state.sipahiPlayer} (ID: ${state.sipahiPlayerId}). I am: ${state.myName} (ID: ${state.myPlayerId})")
+        }
+    }
 
     val sipahiIsDisconnected = state.remotePlayers.find { it.name == state.sipahiPlayer }?.isDisconnected ?: false
     val scrollState = rememberScrollState()
@@ -193,7 +200,10 @@ fun MultiplayerGuessingScreen(
                 
                 state.guessOptions.forEach { playerName ->
                     Card(
-                        onClick = { viewModel.makeGuess(playerName) },
+                        onClick = {
+                            // Optimized: Immediate UI feedback
+                            viewModel.makeGuess(playerName)
+                        },
                         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
@@ -209,8 +219,10 @@ fun MultiplayerGuessingScreen(
             } else {
                 val statusText = if (sipahiIsDisconnected) {
                     "Police is disconnected! Robot is choosing..."
-                } else {
+                } else if (state.sipahiPlayer != null) {
                     "Police (${state.sipahiPlayer}) is guessing..."
+                } else {
+                    "Waiting for Police to be assigned..."
                 }
                 
                 Text(
@@ -580,6 +592,7 @@ fun MultiplayerLetterSetResultContent(
                 val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
                 Button(
                     onClick = { 
+                        // Optimized: immediate UI feedback
                         if (isLastRound) {
                             adManager.showInterstitialAd(context as Activity) {
                                 viewModel.restartMatch()

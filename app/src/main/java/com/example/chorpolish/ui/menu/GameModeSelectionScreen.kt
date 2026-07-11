@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.*
 import com.rakibul.chorpolish.ui.game.GameMode
 import com.rakibul.chorpolish.ui.theme.GameSecondary
 
@@ -96,8 +98,15 @@ fun ModeCard(
     color: Color,
     onClick: () -> Unit
 ) {
+    var isEnabled by remember { mutableStateOf(true) }
+    
     Card(
-        onClick = onClick,
+        onClick = {
+            if (isEnabled) {
+                isEnabled = false
+                onClick()
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp),
@@ -106,6 +115,12 @@ fun ModeCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
     ) {
+        LaunchedEffect(isEnabled) {
+            if (!isEnabled) {
+                delay(500)
+                isEnabled = true
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxSize()

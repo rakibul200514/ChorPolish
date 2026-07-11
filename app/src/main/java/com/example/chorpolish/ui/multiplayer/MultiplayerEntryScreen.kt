@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.QrCodeScanner
 import com.rakibul.chorpolish.ui.theme.GameSecondary
 
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,27 +38,27 @@ fun MultiplayerEntryScreen(
     val state by viewModel.uiState.collectAsState()
     var name by remember { mutableStateOf("") }
     
-    // Load saved name once
+    // Load saved name once and register online
     LaunchedEffect(Unit) {
         if (state.myName.isNotEmpty()) {
             name = state.myName
         }
+        // Force refresh online list when entering this screen
+        viewModel.refreshOnlinePlayers()
+        viewModel.registerOnline()
     }
     var roomCode by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
     // Sync with scanned code
     LaunchedEffect(state.scannedRoomCode) {
-        state.scannedRoomCode?.let {
-            roomCode = it
+        state.scannedRoomCode?.let { code ->
+            roomCode = code
             viewModel.setScannedRoomCode(null) // Clear it
             
-            // Auto-join if name is valid
+            // Auto-join ONLY if name is already provided
             if (name.isNotBlank()) {
-                onJoinRoom(name, it)
-            } else {
-                // If name is empty, we just fill the code and maybe show a hint
-                // But as per user request, we want to join with name
+                onJoinRoom(name, code)
             }
         }
     }
@@ -96,7 +97,10 @@ fun MultiplayerEntryScreen(
 
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { 
+                    name = it
+                    viewModel.updateMyName(it)
+                },
                 label = { Text(stringResource(R.string.your_name_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
@@ -148,7 +152,10 @@ fun MultiplayerEntryScreen(
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = { onCreateRoom(name) },
+                onClick = {
+                    // Optimized: Prevent multiple clicks
+                    onCreateRoom(name)
+                },
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {

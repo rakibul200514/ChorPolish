@@ -69,3 +69,10 @@ data class GuessEmit(
     @Json(name = "roomCode") val roomCode: String,
     @Json(name = "guessedPlayerName") val guessedPlayerName: String
 )
+
+@JsonClass(generateAdapter = true)
+data class OnlinePlayerRemote(
+    @Json(name = "playerId") val playerId: String,
+    @Json(name = "name") val name: String,
+    @Json(name = "isAvailable") val isAvailable: Boolean = true
+)

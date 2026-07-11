@@ -7,7 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -33,7 +33,7 @@ fun LetterSetPlayScreen(
     val nextPlayerIndex = (uiState.currentPlayerTurn + 1) % 4
     val nextPlayer = uiState.players[nextPlayerIndex]
     
-    var selectedCard by remember(uiState.currentPlayerTurn) { mutableStateOf<String?>(null) }
+    var selectedIndex by remember(uiState.currentPlayerTurn) { mutableIntStateOf(-1) }
     var isConfirmed by remember(uiState.currentPlayerTurn) { mutableStateOf(false) }
     var showPassOverlay by remember(uiState.currentPlayerTurn) { mutableStateOf(!currentPlayer.isRobot) }
 
@@ -130,19 +130,20 @@ fun LetterSetPlayScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        items(playerCards) { card ->
+                        itemsIndexed(playerCards) { index, card ->
                             LetterCard(
                                 letter = card,
-                                isSelected = selectedCard == card,
-                                onClick = { if (!isConfirmed) selectedCard = card }
+                                isSelected = selectedIndex == index,
+                                onClick = { if (!isConfirmed) selectedIndex = index }
                             )
                         }
                     }
 
-                    if (selectedCard != null) {
+                    if (selectedIndex != -1) {
                         Button(
                             onClick = {
-                                onPassCard(currentPlayer.id, nextPlayer.id, selectedCard!!)
+                                val cardToPass = playerCards[selectedIndex]
+                                onPassCard(currentPlayer.id, nextPlayer.id, cardToPass)
                                 isConfirmed = true
                             },
                             modifier = Modifier
@@ -152,11 +153,11 @@ fun LetterSetPlayScreen(
                         ) {
                             Icon(Icons.Rounded.Sync, contentDescription = null)
                             Spacer(Modifier.width(12.dp))
-                            Text("PASS CARD TO ${nextPlayer.name.uppercase()}", fontWeight = FontWeight.Bold)
+                            Text("PASS '${playerCards[selectedIndex]}' TO ${nextPlayer.name.uppercase()}", fontWeight = FontWeight.Bold)
                         }
                     } else {
                         Text(
-                            "Select a card to pass to ${nextPlayer.name}",
+                            "Select one card to pass to ${nextPlayer.name}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,

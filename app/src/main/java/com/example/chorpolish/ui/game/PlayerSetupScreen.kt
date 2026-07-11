@@ -67,17 +67,27 @@ fun PlayerSetupScreen(
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
+                    var isStartLoading by remember { mutableStateOf(false) }
                     Button(
-                        onClick = onStartGame,
+                        onClick = {
+                            if (!isStartLoading) {
+                                isStartLoading = true
+                                onStartGame()
+                            }
+                        },
                         enabled = isInputValid,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.start_game), style = MaterialTheme.typography.labelLarge)
+                        if (isStartLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                        } else {
+                            Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.start_game), style = MaterialTheme.typography.labelLarge)
+                        }
                     }
                 }
             }

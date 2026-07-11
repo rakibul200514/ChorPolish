@@ -25,6 +25,8 @@ class MultiplayerRepository @Inject constructor(
         }
     }
 
+    fun isConnected(): Boolean = socket.connected()
+
     fun disconnect() {
         socket.disconnect()
     }
@@ -127,8 +129,40 @@ class MultiplayerRepository @Inject constructor(
         socket.emit("sendEmoji", data)
     }
 
+    fun registerOnline(playerId: String, name: String) {
+        val data = JSONObject().apply {
+            put("playerId", playerId)
+            put("name", name)
+        }
+        socket.emit("registerOnline", data)
+    }
+
+    fun getOnlinePlayers() {
+        socket.emit("getOnlinePlayers")
+    }
+
+    fun invitePlayer(targetPlayerId: String, roomCode: String, hostName: String) {
+        val data = JSONObject().apply {
+            put("targetPlayerId", targetPlayerId)
+            put("roomCode", roomCode)
+            put("hostName", hostName)
+        }
+        socket.emit("invitePlayer", data)
+    }
+
+    fun leaveRoom(roomCode: String, playerId: String) {
+        val data = JSONObject().apply {
+            put("roomCode", roomCode)
+            put("playerId", playerId)
+        }
+        socket.emit("leaveRoom", data)
+    }
+
     fun observeRoomEvents(): Flow<MultiplayerEvent> = callbackFlow {
         val adapter = moshi.adapter(RoomResponse::class.java)
+        val onlinePlayersAdapter = moshi.adapter<List<com.rakibul.chorpolish.data.remote.model.OnlinePlayerRemote>>(
+            com.squareup.moshi.Types.newParameterizedType(List::class.java, com.rakibul.chorpolish.data.remote.model.OnlinePlayerRemote::class.java)
+        )
 
         val roomUpdatedListener = Emitter.Listener { args ->
             val json = args[0].toString()
@@ -196,11 +230,35 @@ class MultiplayerRepository @Inject constructor(
             }
         }
 
+        val onlinePlayersListener = Emitter.Listener { args ->
+            try {
+                val json = args[0].toString()
+                onlinePlayersAdapter.fromJson(json)?.let {
+                    trySend(MultiplayerEvent.OnlinePlayersUpdated(it))
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("SocketIO", "Error parsing onlinePlayersList", e)
+            }
+        }
+
+        val inviteReceivedListener = Emitter.Listener { args ->
+            try {
+                val data = args[0] as JSONObject
+                val roomCode = data.getString("roomCode")
+                val hostName = data.getString("hostName")
+                trySend(MultiplayerEvent.InviteReceived(roomCode, hostName))
+            } catch (e: Exception) {
+                android.util.Log.e("SocketIO", "Error parsing inviteReceived", e)
+            }
+        }
+
         socket.on("roomUpdated", roomUpdatedListener)
         socket.on("gameStarted", gameStartedListener)
         socket.on("guessResult", guessResultListener)
         socket.on("gameFinished", gameFinishedListener)
         socket.on("emojiReceived", emojiListener)
+        socket.on("onlinePlayersList", onlinePlayersListener)
+        socket.on("inviteReceived", inviteReceivedListener)
 
         socket.on(Socket.EVENT_CONNECT) { android.util.Log.d("SocketIO", "Connected!") }
         socket.on(Socket.EVENT_DISCONNECT) { android.util.Log.d("SocketIO", "Disconnected!") }
@@ -212,6 +270,8 @@ class MultiplayerRepository @Inject constructor(
             socket.off("guessResult", guessResultListener)
             socket.off("gameFinished", gameFinishedListener)
             socket.off("emojiReceived", emojiListener)
+            socket.off("onlinePlayersList", onlinePlayersListener)
+            socket.off("inviteReceived", inviteReceivedListener)
         }
     }
 }
@@ -222,4 +282,6 @@ sealed class MultiplayerEvent {
     data class GuessResult(val room: RoomResponse) : MultiplayerEvent()
     data class GameFinished(val room: RoomResponse) : MultiplayerEvent()
     data class EmojiReceived(val emoji: String, val playerName: String) : MultiplayerEvent()
+    data class OnlinePlayersUpdated(val players: List<com.rakibul.chorpolish.data.remote.model.OnlinePlayerRemote>) : MultiplayerEvent()
+    data class InviteReceived(val roomCode: String, val hostName: String) : MultiplayerEvent()
 }

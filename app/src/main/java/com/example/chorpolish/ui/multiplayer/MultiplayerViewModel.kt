@@ -48,7 +48,9 @@ data class MultiplayerUiState(
     val winner: String? = null,
     val currentPlayerTurn: Int = 0,
     val premiumEmojisUnlocked: Boolean = false,
-    val maxRounds: Int = 8
+    val maxRounds: Int = 8,
+    val onlinePlayers: List<com.rakibul.chorpolish.data.remote.model.OnlinePlayerRemote> = emptyList(),
+    val pendingInvite: Pair<String, String>? = null // RoomCode to HostName
 )
 
 data class EmojiReaction(
@@ -133,17 +135,66 @@ class MultiplayerViewModel @Inject constructor(
                     }
                 }
             }
+            is MultiplayerEvent.OnlinePlayersUpdated -> {
+                // Filter out myself from the online list
+                val others = event.players.filter { it.playerId != _uiState.value.myPlayerId }
+                _uiState.update { it.copy(onlinePlayers = others) }
+            }
+            is MultiplayerEvent.InviteReceived -> {
+                _uiState.update { it.copy(pendingInvite = event.roomCode to event.hostName) }
+                soundManager.playSoundEffect(SoundEffect.NOTIFICATION) // Need to add this effect or similar
+            }
         }
+    }
+
+    fun updateMyName(name: String) {
+        _uiState.update { it.copy(myName = name) }
+        viewModelScope.launch {
+            sessionManager.savePlayerName(name)
+            // Register online as they type or after a short delay
+            if (name.isNotBlank()) {
+                registerOnline()
+            }
+        }
+    }
+
+    fun registerOnline() {
+        val state = _uiState.value
+        if (state.myName.isNotEmpty() && state.myPlayerId.isNotEmpty()) {
+            // Note: register even if in room, server handles availability flag
+            repository.registerOnline(state.myPlayerId, state.myName)
+        }
+    }
+
+    fun invitePlayer(targetPlayerId: String) {
+        val state = _uiState.value
+        if (state.roomCode != null && state.myName.isNotEmpty()) {
+            repository.invitePlayer(targetPlayerId, state.roomCode, state.myName)
+        }
+    }
+
+    fun acceptInvite() {
+        val invite = _uiState.value.pendingInvite ?: return
+        joinRoom(_uiState.value.myName, invite.first)
+        _uiState.update { it.copy(pendingInvite = null) }
+    }
+
+    fun declineInvite() {
+        _uiState.update { it.copy(pendingInvite = null) }
+    }
+
+    fun refreshOnlinePlayers() {
+        repository.getOnlinePlayers()
     }
 
     private fun updateStateFromRoom(room: RoomResponse) {
         val currentId = _uiState.value.myPlayerId
         val currentName = _uiState.value.myName
         
-        // Find my player in the room list
+        // Find my player in the room list - use trim() for safer name matching
         val myRemotePlayer = room.players?.find { 
             (it.playerId == currentId && currentId.isNotEmpty()) || 
-            (it.name == currentName && currentName.isNotEmpty()) 
+            (it.name?.trim() == currentName.trim() && currentName.isNotEmpty()) 
         }
 
         val myRole = when(myRemotePlayer?.role?.uppercase()) {
@@ -158,12 +209,14 @@ class MultiplayerViewModel @Inject constructor(
         val previousTurn = _uiState.value.currentPlayerTurn
 
         _uiState.update { state ->
+            val updatedPlayers = room.players?.mapNotNull { it.name } ?: state.players
             state.copy(
                 roomCode = room.roomCode ?: state.roomCode,
-                players = room.players?.mapNotNull { it.name } ?: state.players,
-                remotePlayers = room.players ?: emptyList(), // Store full list
+                players = updatedPlayers,
+                remotePlayers = room.players ?: emptyList(),
                 playerIds = room.players?.mapNotNull { it.playerId } ?: state.playerIds,
-                isHost = room.host == state.myName,
+                // Host check: compare trimmed names and also check if we are the host flag from response
+                isHost = room.host?.trim() == state.myName.trim() || state.isHost,
                 phase = room.phase ?: "LOBBY",
                 gameMode = room.gameMode ?: "CHOR_POLISH",
                 myRole = myRole, // Correctly update role (can be null in Letter Set)
@@ -357,12 +410,25 @@ class MultiplayerViewModel @Inject constructor(
     }
 
     fun leaveRoom() {
+        val state = _uiState.value
         viewModelScope.launch {
+            if (state.roomCode != null) {
+                repository.leaveRoom(state.roomCode, state.myPlayerId)
+            }
             sessionManager.saveRoomCode(null)
-            _uiState.update { it.copy(roomCode = null, players = emptyList(), myRole = null, phase = "LOBBY") }
-            repository.disconnect()
-            // Optional: reconnect immediately if you want to be ready for the next room
+            _uiState.update { it.copy(
+                roomCode = null, 
+                players = emptyList(), 
+                remotePlayers = emptyList(),
+                myRole = null, 
+                phase = "LOBBY",
+                isHost = false,
+                isReconnecting = false // Reset reconnection state
+            ) }
+            // Ensure socket is still connected for online list
             repository.connect()
+            // Refresh online status after leaving
+            registerOnline()
         }
     }
 

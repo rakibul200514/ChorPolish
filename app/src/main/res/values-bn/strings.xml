@@ -66,7 +66,7 @@
     <string name="language_current">বাংলা</string>
     <string name="dark_theme">ডার্ক থিম</string>
     <string name="dark_theme_desc">সিস্টেম সেটিংস অনুসরণ করুন</string>
-    <string name="version_label">সংস্করণ ১.০.৩</string>
+    <string name="version_label">সংস্করণ ১.০.৪</string>
 
     <!-- Multiplayer -->
     <string name="multiplayer_setup_title">মাল্টিপ্লেয়ার সেটআপ</string>

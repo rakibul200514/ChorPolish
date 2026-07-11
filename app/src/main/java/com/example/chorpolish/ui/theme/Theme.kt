@@ -96,7 +96,11 @@ fun GameScreenWrapper(
                 )
             )
     ) {
+        // Optimized: Only show decorative shapes on large screens or keep them static
+        // Or simply reduce recomposition by ensuring content is separate
         DecorativeShapes()
-        content()
+        Box(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
     }
 }

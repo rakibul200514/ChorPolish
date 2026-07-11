@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -180,8 +182,10 @@ fun VideoBanner(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
+    var exoPlayer by remember { mutableStateOf<ExoPlayer?>(null) }
+
+    LaunchedEffect(videoFileName) {
+        val player = ExoPlayer.Builder(context).build().apply {
             repeatMode = Player.REPEAT_MODE_ALL
             playWhenReady = true
             val resourceId = context.resources.getIdentifier(videoFileName, "raw", context.packageName)
@@ -191,24 +195,30 @@ fun VideoBanner(
                 prepare()
             }
         }
+        exoPlayer = player
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            exoPlayer.release()
+            exoPlayer?.release()
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                player = exoPlayer
-                useController = false
-                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            }
-        },
-        modifier = modifier
-    )
+    Box(modifier = modifier.background(Color.Black.copy(alpha = 0.2f))) {
+        exoPlayer?.let { player ->
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        this.player = player
+                        useController = false
+                        resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
 }
 
 @Composable
@@ -218,8 +228,16 @@ fun MenuButton(
     color: Color,
     onClick: () -> Unit
 ) {
+    var isEnabled by remember { mutableStateOf(true) }
+    
     Button(
-        onClick = onClick,
+        onClick = {
+            if (isEnabled) {
+                isEnabled = false
+                onClick()
+                // Simple debounce: re-enable after delay
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp),
@@ -227,6 +245,12 @@ fun MenuButton(
         colors = ButtonDefaults.buttonColors(containerColor = color),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
     ) {
+        LaunchedEffect(isEnabled) {
+            if (!isEnabled) {
+                delay(500)
+                isEnabled = true
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -250,8 +274,15 @@ fun SmallMenuButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    var isEnabled by remember { mutableStateOf(true) }
+    
     OutlinedButton(
-        onClick = onClick,
+        onClick = {
+            if (isEnabled) {
+                isEnabled = false
+                onClick()
+            }
+        },
         modifier = modifier.height(56.dp),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
@@ -259,6 +290,12 @@ fun SmallMenuButton(
             contentColor = Color.White
         )
     ) {
+        LaunchedEffect(isEnabled) {
+            if (!isEnabled) {
+                delay(500)
+                isEnabled = true
+            }
+        }
         Icon(icon, contentDescription = null, tint = Color.White)
         Spacer(Modifier.width(8.dp))
         Text(text, color = Color.White)
@@ -267,13 +304,14 @@ fun SmallMenuButton(
 
 @Composable
 fun DecorativeShapes() {
+    // Optimized: Use a separate Box that doesn't trigger parent recomposition
     Box(modifier = Modifier.fillMaxSize()) {
         val infiniteTransition = rememberInfiniteTransition(label = "shapes")
-        val rotation by infiniteTransition.animateFloat(
+        val rotationState = infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
-                animation = tween(20000, easing = LinearEasing),
+                animation = tween(40000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "rotation"
@@ -285,7 +323,9 @@ fun DecorativeShapes() {
             modifier = Modifier
                 .size(200.dp)
                 .offset(x = (-100).dp, y = (-50).dp)
-                .rotate(rotation)
+                .graphicsLayer { 
+                    rotationZ = rotationState.value // Read value inside lambda for performance
+                }
                 .scale(0.8f),
             tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
         )
@@ -297,7 +337,9 @@ fun DecorativeShapes() {
                 .size(250.dp)
                 .align(Alignment.BottomEnd)
                 .offset(x = 100.dp, y = 100.dp)
-                .rotate(-rotation)
+                .graphicsLayer { 
+                    rotationZ = -rotationState.value // Read value inside lambda for performance
+                }
                 .scale(0.8f),
             tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f)
         )

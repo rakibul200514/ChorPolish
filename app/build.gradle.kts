@@ -14,8 +14,8 @@ android {
         applicationId = "com.rakibul.chorpolish"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.0.3"
+        versionCode = 5
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

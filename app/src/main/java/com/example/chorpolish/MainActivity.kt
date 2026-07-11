@@ -225,6 +225,12 @@ fun MainNavigation(soundManager: SoundManager) {
         }
     }
 
+    LaunchedEffect(multiplayerUiState.myName, multiplayerUiState.myPlayerId) {
+        if (multiplayerUiState.myName.isNotEmpty() && multiplayerUiState.myPlayerId.isNotEmpty()) {
+            multiplayerViewModel.registerOnline()
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars,
         containerColor = Color.Transparent
@@ -334,21 +340,24 @@ fun MainNavigation(soundManager: SoundManager) {
                             )
                         }
                         entry<NavDestination.MultiplayerLobby> {
-                        MultiplayerLobbyScreen(
-                            roomCode = multiplayerUiState.roomCode ?: "------",
-                            players = multiplayerUiState.players,
-                            myName = multiplayerUiState.myName,
-                            isHost = multiplayerUiState.isHost,
-                            initialGameMode = multiplayerUiState.gameMode,
-                            onStartGame = { mode, rounds ->
-                                multiplayerViewModel.triggerStart(mode, rounds)
-                            },
-                            onLeaveRoom = {
-                                multiplayerViewModel.leaveRoom()
-                                backStack.removeAt(backStack.size - 1)
-                            }
-                        )
-                    }
+                            MultiplayerLobbyScreen(
+                                roomCode = multiplayerUiState.roomCode ?: "------",
+                                players = multiplayerUiState.players,
+                                myName = multiplayerUiState.myName,
+                                isHost = multiplayerUiState.isHost,
+                                initialGameMode = multiplayerUiState.gameMode,
+                                onlinePlayers = multiplayerUiState.onlinePlayers,
+                                onInvite = { targetId -> multiplayerViewModel.invitePlayer(targetId) },
+                                onRefreshOnline = { multiplayerViewModel.refreshOnlinePlayers() },
+                                onStartGame = { mode, rounds ->
+                                    multiplayerViewModel.triggerStart(mode, rounds)
+                                },
+                                onLeaveRoom = {
+                                    multiplayerViewModel.leaveRoom()
+                                    backStack.removeAt(backStack.size - 1)
+                                }
+                            )
+                        }
                         entry<NavDestination.RoleReveal> {
                             if (isMultiplayer) {
                                 MultiplayerRoleRevealScreen(multiplayerViewModel, multiplayerUiState)
@@ -493,6 +502,24 @@ fun MainNavigation(soundManager: SoundManager) {
                             Text(stringResource(R.string.reconnecting_label), color = Color.White)
                         }
                     }
+                }
+
+                multiplayerUiState.pendingInvite?.let { invite ->
+                    AlertDialog(
+                        onDismissRequest = { multiplayerViewModel.declineInvite() },
+                        title = { Text("Game Invitation") },
+                        text = { Text("${invite.second} invited you to join room ${invite.first}") },
+                        confirmButton = {
+                            Button(onClick = { multiplayerViewModel.acceptInvite() }) {
+                                Text("JOIN")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { multiplayerViewModel.declineInvite() }) {
+                                Text("DECLINE")
+                            }
+                        }
+                    )
                 }
             }
         }

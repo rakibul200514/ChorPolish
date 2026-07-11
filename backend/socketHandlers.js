@@ -1,7 +1,23 @@
 const Room = require('./models/Room');
+const OnlinePlayer = require('./models/OnlinePlayer');
 
 module.exports = (io, socket) => {
+    // Helper to manage online status
+    const updateOnlineStatus = async (playerId, name, socketId, isAvailable = true) => {
+        try {
+            await OnlinePlayer.findOneAndUpdate(
+                { playerId },
+                { name, socketId, isAvailable, lastSeen: new Date() },
+                { upsert: true, new: true }
+            );
+            console.log(`Player ${name} (${playerId}) is now online`);
+        } catch (err) {
+            console.error('Error updating online status:', err);
+        }
+    };
+
     // Helper to check if a player needs Robot help
+    // ... (keep existing checkAndTriggerRobotAction)
     const checkAndTriggerRobotAction = async (roomCode) => {
         const room = await Room.findOne({ roomCode });
         if (!room || room.phase === 'LOBBY' || room.phase === 'FINISHED' || room.phase === 'RESULT') return;
@@ -115,6 +131,30 @@ module.exports = (io, socket) => {
         console.log(`Socket ${socket.id} sent event: ${eventName}`, args);
     });
 
+    socket.on('registerOnline', async (data) => {
+        const { playerId, name } = typeof data === 'string' ? JSON.parse(data) : data;
+        await updateOnlineStatus(playerId, name, socket.id, true);
+
+        // Global broadcast: everyone connected sees the updated online list
+        const allAvailable = await OnlinePlayer.find({ isAvailable: true });
+        io.emit('onlinePlayersList', allAvailable);
+    });
+
+    socket.on('getOnlinePlayers', async () => {
+        const onlinePlayers = await OnlinePlayer.find({ isAvailable: true });
+        // Specific response for the polling/refresh request
+        socket.emit('onlinePlayersList', onlinePlayers);
+    });
+
+    socket.on('invitePlayer', async (data) => {
+        const { targetPlayerId, roomCode, hostName } = typeof data === 'string' ? JSON.parse(data) : data;
+        const target = await OnlinePlayer.findOne({ playerId: targetPlayerId });
+        if (target && target.socketId) {
+            io.to(target.socketId).emit('inviteReceived', { roomCode, hostName });
+            console.log(`Invitation sent from ${hostName} to ${target.name} for room ${roomCode}`);
+        }
+    });
+
     socket.on('joinRoom', async (data) => {
         try {
             const { roomCode, playerId } = typeof data === 'string' ? JSON.parse(data) : data;
@@ -128,11 +168,19 @@ module.exports = (io, socket) => {
                     player.socketId = socket.id;
                     player.isDisconnected = false;
                     player.disconnectedAt = null;
+
+                    // Mark as unavailable for invites since they are in a room
+                    await OnlinePlayer.findOneAndUpdate({ playerId }, { isAvailable: false });
+
                     await room.save();
                     console.log(`Player ${player.name} (${playerId}) successfully joined socket room`);
 
                     // Broadcast updated room state to everyone in the room
                     io.to(roomCode).emit('roomUpdated', room);
+
+                    // Also broadcast updated online list (since one player is now unavailable)
+                    const allOnline = await OnlinePlayer.find({ isAvailable: true });
+                    io.emit('onlinePlayersList', allOnline);
                 } else {
                     console.warn(`Player ${playerId} not found in room ${roomCode} data`);
                 }
@@ -141,6 +189,43 @@ module.exports = (io, socket) => {
             }
         } catch (err) {
             console.error('joinRoom socket error:', err);
+        }
+    });
+
+    socket.on('leaveRoom', async (data) => {
+        try {
+            const { roomCode, playerId } = typeof data === 'string' ? JSON.parse(data) : data;
+            console.log(`Player ${playerId} is leaving room ${roomCode}`);
+
+            const room = await Room.findOne({ roomCode });
+            if (room) {
+                // Remove the player from the room's players array
+                room.players = room.players.filter(p => p.playerId !== playerId);
+
+                if (room.players.length === 0) {
+                    // If no players left, delete the room
+                    await Room.deleteOne({ roomCode });
+                    console.log(`Room ${roomCode} deleted as it is empty`);
+                } else {
+                    // If the leaving player was the host, assign a new host
+                    if (room.host === playerId || room.host === data.playerName) {
+                        room.host = room.players[0].name;
+                    }
+                    await room.save();
+                    // Notify remaining players
+                    io.to(roomCode).emit('roomUpdated', room);
+                }
+            }
+
+            // Mark as available again in online list
+            await OnlinePlayer.findOneAndUpdate({ playerId }, { isAvailable: true });
+            socket.leave(roomCode);
+
+            // Global broadcast updated online list
+            const allAvailable = await OnlinePlayer.find({ isAvailable: true });
+            io.emit('onlinePlayersList', allAvailable);
+        } catch (err) {
+            console.error('leaveRoom error:', err);
         }
     });
 
@@ -480,6 +565,20 @@ module.exports = (io, socket) => {
 
     socket.on('disconnect', async () => {
         try {
+            // Find player before deleting
+            const onlinePlayer = await OnlinePlayer.findOne({ socketId: socket.id });
+            const playerId = onlinePlayer ? onlinePlayer.playerId : null;
+
+            // Remove from Online Players
+            await OnlinePlayer.findOneAndDelete({ socketId: socket.id });
+            console.log(`Socket ${socket.id} removed from online players`);
+
+            // If we have a playerId, broadcast updated list to others
+            if (playerId) {
+                const allAvailable = await OnlinePlayer.find({ isAvailable: true });
+                io.emit('onlinePlayersList', allAvailable);
+            }
+
             const room = await Room.findOne({ "players.socketId": socket.id });
             if (room) {
                 const player = room.players.find(p => p.socketId === socket.id);

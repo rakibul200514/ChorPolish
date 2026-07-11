@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rakibul.chorpolish.ui.game.GameMode
 import com.rakibul.chorpolish.utils.AdManager
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,13 +157,26 @@ fun MatchTypeCard(
     isLocked: Boolean = false,
     onClick: () -> Unit
 ) {
+    var isEnabled by remember { mutableStateOf(true) }
+    
     Card(
-        onClick = onClick,
+        onClick = {
+            if (isEnabled) {
+                isEnabled = false
+                onClick()
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
         border = if (isDefault) androidx.compose.foundation.BorderStroke(2.dp, color) else null
     ) {
+        LaunchedEffect(isEnabled) {
+            if (!isEnabled) {
+                delay(500)
+                isEnabled = true
+            }
+        }
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically

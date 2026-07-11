@@ -112,6 +112,9 @@ class SoundManager @Inject constructor(
                             toneGenerator.startTone(ToneGenerator.TONE_DTMF_9, 400)
                         }
                     }
+                    SoundEffect.NOTIFICATION -> {
+                        toneGenerator.startTone(ToneGenerator.TONE_SUP_PIP, 200)
+                    }
                     else -> {
                         toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 100)
                     }
@@ -191,7 +194,8 @@ enum class SoundEffect {
     GUESS_WRONG,
     SCORE_UPDATE,
     WINNER_SOUND,
-    CONFETTI
+    CONFETTI,
+    NOTIFICATION
 }
 
 enum class MusicType {
