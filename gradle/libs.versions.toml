@@ -49,6 +49,7 @@ lottieCompose = "6.4.0"
 google-errorprone-annotations = "2.50.0"
 zxing = "3.5.3"
 barcode-scanning = "17.3.0"
+installreferrer = "2.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -107,6 +108,8 @@ lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", versio
 google-errorprone-annotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "google-errorprone-annotations" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcode-scanning" }
+play-app-update = { group = "com.google.android.play", name = "app-update", version = "2.1.0" }
+installreferrer = { group = "com.android.installreferrer", name = "installreferrer", version.ref = "installreferrer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

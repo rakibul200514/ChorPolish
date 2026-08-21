@@ -2,6 +2,7 @@ package com.rakibul.chorpolish
 
 import android.os.Bundle
 import android.app.Activity
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -39,6 +40,7 @@ import com.rakibul.chorpolish.ui.menu.GameModeSelectionScreen
 import com.rakibul.chorpolish.ui.game.GameMode
 import com.rakibul.chorpolish.ui.settings.SettingsScreen
 import com.rakibul.chorpolish.ui.rules.GameRulesScreen
+import com.rakibul.chorpolish.ui.rewards.RewardsScreen
 import com.rakibul.chorpolish.ui.multiplayer.*
 import com.rakibul.chorpolish.ui.navigation.NavDestination
 import com.rakibul.chorpolish.ui.theme.ChorPolishTheme
@@ -54,8 +56,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var soundManager: SoundManager
 
+    @Inject
+    lateinit var referralTracker: com.rakibul.chorpolish.data.remote.ReferralTracker
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Start referral tracking
+        referralTracker.startTracking()
+
+        // Check for app updates on launch
+        com.rakibul.chorpolish.utils.AppUpdateManager(this).checkForUpdate(this)
+
         enableEdgeToEdge()
         setContent {
             val mainViewModel: MainViewModel = hiltViewModel()
@@ -105,7 +117,7 @@ class MainActivity : ComponentActivity() {
 fun MainNavigation(soundManager: SoundManager) {
     val context = LocalContext.current
     val adManager = remember { com.rakibul.chorpolish.utils.AdManager() }
-    val gameViewModel: GameViewModel = viewModel()
+    val gameViewModel: GameViewModel = hiltViewModel()
     
     LaunchedEffect(Unit) {
         (context as? Activity)?.let {
@@ -113,8 +125,8 @@ fun MainNavigation(soundManager: SoundManager) {
             adManager.loadAppOpenAd(it)
         }
     }
-    val historyViewModel: HistoryViewModel = viewModel()
-    val multiplayerViewModel: MultiplayerViewModel = viewModel()
+    val historyViewModel: HistoryViewModel = hiltViewModel()
+    val multiplayerViewModel: MultiplayerViewModel = hiltViewModel()
     val settingsViewModel: com.rakibul.chorpolish.ui.settings.SettingsViewModel = hiltViewModel()
     
     val uiState by gameViewModel.uiState.collectAsState()
@@ -251,7 +263,12 @@ fun MainNavigation(soundManager: SoundManager) {
                         entry<NavDestination.MainMenu> {
                             MainMenuScreen(
                                 onLocalGame = { backStack.add(NavDestination.GameModeSelection(isMultiplayer = false)) },
+                                onLocalArcadeGames = {
+                                    val intent = Intent(context, com.rakibul.chorpolish.localgames.activities.LocalGamesActivity::class.java)
+                                    context.startActivity(intent)
+                                },
                                 onMultiplayer = { backStack.add(NavDestination.GameModeSelection(isMultiplayer = true)) },
+                                onRewards = { backStack.add(NavDestination.Rewards) },
                                 onHistory = { backStack.add(NavDestination.History) },
                                 onSettings = { backStack.add(NavDestination.Settings) }
                             )
@@ -484,6 +501,13 @@ fun MainNavigation(soundManager: SoundManager) {
                             GameRulesScreen(
                                 onDismiss = {
                                     gameViewModel.dismissRules()
+                                    backStack.removeAt(backStack.size - 1)
+                                }
+                            )
+                        }
+                        entry<NavDestination.Rewards> {
+                            RewardsScreen(
+                                onBack = {
                                     backStack.removeAt(backStack.size - 1)
                                 }
                             )

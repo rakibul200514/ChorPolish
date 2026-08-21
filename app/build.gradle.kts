@@ -14,8 +14,8 @@ android {
         applicationId = "com.rakibul.chorpolish"
         minSdk = 24
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.0.4"
+        versionCode = 11
+        versionName = "1.2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -99,9 +99,12 @@ dependencies {
     "ksp"(libs.moshi.kotlin.codegen)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
-    implementation("com.google.android.gms:play-services-ads:25.4.0")
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
+    implementation("com.google.android.ump:user-messaging-platform:3.1.0")
     "ksp"(libs.hilt.compiler)
     implementation(libs.google.errorprone.annotations)
     implementation(libs.zxing.core)
     implementation(libs.barcode.scanning)
+    implementation(libs.play.app.update)
+    implementation(libs.installreferrer)
 }

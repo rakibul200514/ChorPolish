@@ -55,7 +55,9 @@ io.on('connection', (socket) => {
 
 // Routes
 const roomRoutes = require('./routes/rooms');
+const referralRoutes = require('./routes/referrals');
 app.use('/api/rooms', roomRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {
